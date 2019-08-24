@@ -1,8 +1,15 @@
 #include "board.h"
+#include "analog.h"
+
+using hal::sys_tick;
+using namespace board;
+using namespace analog;
 
 int main()
 {
-    setup();
+    board::setup();
+    analog::setup();
+
     for (;;)
     {
         message_t m;
@@ -21,5 +28,8 @@ int main()
                 printf("unhandled message type\n");
             }
         }
+
+        printf("%5d %5d %5d\n", read<0>(), read<1>(), read<2>());
+        sys_tick::delay_ms(20);
     }
 }
