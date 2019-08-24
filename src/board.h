@@ -46,19 +46,19 @@ template<> void handler<interrupt::TIM7>()
     encoder_btn::update();
     push_btn::update();
 
-    int16_t c = encoder::count();
+    int16_t c = static_cast<int16_t>(encoder::count()) >> 1;
     message_t m;
 
     if (c != encoder_last_count)
     {
-        mq::put(m.emplace<1>(c - encoder_last_count));
+        mq::put(m.emplace<encoder_delta>(c - encoder_last_count));
         encoder_last_count = c;
     }
 
     if (encoder_btn::read())
-        mq::put(m.emplace<0>(0));
+        mq::put(m.emplace<button_press>(0));
     if (push_btn::read())
-        mq::put(m.emplace<1>(1));
+        mq::put(m.emplace<button_press>(1));
 }
 
 void setup()
