@@ -2,6 +2,13 @@
 
 #include <cordic.h>
 
+void setup_cordic()
+{
+    typedef hal::cordic::cordic_t cordic;   // FIXME: leaking device into here?
+
+    cordic::setup<cordic::sine, 4>();
+}
+
 template<typename WAVEGEN, uint32_t SAMPLE_FREQ>
 class signal_generator_t
 {

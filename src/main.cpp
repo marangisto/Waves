@@ -16,16 +16,20 @@ static inline float cv2freq(float x)
     return f0 * pow(semi_tone, 12 * x);
 }
 
+static signal_generator_t<mixed, 96000> sig_gen;
+
 void process_buffer(uint16_t *buf, uint16_t len)
 {
     for (uint16_t i = 0; i < len; ++i)
-        buf[i] = i << 8;
+        buf[i] = (sig_gen.sample() + 1.01) * 2010.;     // FIXME: correct for clipping
 }
 
 int main()
 {
     board::setup();
     analog::setup();
+    setup_cordic();
+    sig_gen.setup(440);
     output::setup();
 
     for (;;)
