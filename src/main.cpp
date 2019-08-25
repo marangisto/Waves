@@ -1,14 +1,32 @@
 #include "board.h"
 #include "analog.h"
+#include "signal.h"
+#include "output.h"
+#include <math.h>
 
 using hal::sys_tick;
 using namespace board;
 using namespace analog;
 
+static inline float cv2freq(float x)
+{
+    static const float f0 = 440.;
+    static const float semi_tone = pow(2., 1. / 12.);
+
+    return f0 * pow(semi_tone, 12 * x);
+}
+
+void process_buffer(uint16_t *buf, uint16_t len)
+{
+    for (uint16_t i = 0; i < len; ++i)
+        buf[i] = i << 8;
+}
+
 int main()
 {
     board::setup();
     analog::setup();
+    output::setup();
 
     for (;;)
     {
@@ -33,3 +51,4 @@ int main()
         sys_tick::delay_ms(20);
     }
 }
+
