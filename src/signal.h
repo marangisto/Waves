@@ -28,8 +28,13 @@ public:
     {
         float s = WAVEGEN::value(m_phi);                // generate signal value
 
-        if ((m_phi += m_dphi) >= 1.)                    // advance and wrap around
+        m_phi += m_dphi;                                // advance angle
+
+        if (m_phi >= 1.)
             m_phi -= 2.;
+        else if (m_phi <= -1.)
+            m_phi += 2.;
+
         return s;
     }
 
