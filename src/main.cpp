@@ -31,9 +31,13 @@ static inline float cv2ratio(uint16_t x)
     return exp(x * (log(11.) / 4095.)) - 1.;
 }
 
-static inline float cv2index(uint16_t x)
+static inline float translate(uint16_t x, uint16_t x0, uint16_t x1, float y0, float y1)
 {
-    return x * (5 / 4095.);
+    if (x < x0)
+        return y0;
+    if (x > x1)
+        return y1;
+    return y0 + (y1 - y0) * (x - x0) / static_cast<float>(x1 - x0);
 }
 
 static signal_generator_t<sine, 96000> modulator;
@@ -123,9 +127,9 @@ int main()
             }
         }
 
-        index = cv2index(read<2>());
+        index = translate(read<1>(), 190, 2100, 1., .0) * translate(read<2>(), 20, 4095, .0, 50.);
 
-        printf("%5d %5f %5f\n", read<0>(), ratio, index);
+        printf("%5d %5d %5d\n", read<0>(), read<1>(), read<2>());
         sys_tick::delay_ms(20);
     }
 }

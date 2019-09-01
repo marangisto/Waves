@@ -36,7 +36,7 @@ typedef analog_t<PB0> ain3;
 void setup()
 {
     interrupt::enable();
-    serial::setup<230400>();
+    serial::setup<115200>();
     hal::nvic<interrupt::USART2>::enable();
     stdio_t::bind<serial>();
     printf("Cordic VCO v0.1\n");
