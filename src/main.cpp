@@ -10,7 +10,7 @@ using namespace analog;
 
 static inline float cv2midi(float x)
 {
-    return 0;
+    return 69 + x * 12.;
 }
 
 static inline float midi2freq(float m)
@@ -24,6 +24,11 @@ static inline float cv2freq(float x)
     static const float semi_tone = pow(2., 1. / 12.);
 
     return f0 * pow(semi_tone, 12 * x);
+}
+
+static inline float volts(uint16_t x)
+{
+    return x / (2048. / 5.);    // FIXME: amp stage has wrong range!
 }
 
 static inline float cv2ratio(uint16_t x)
@@ -148,7 +153,7 @@ int main()
     output::setup();
 
     focus_t focus = focus_freq;
-    uint8_t midi = 69;
+    static uint8_t midi = 0;
     uint8_t ridx = 0;
 
     for (;;)
@@ -173,8 +178,7 @@ int main()
                 switch (focus)
                 {
                 case focus_freq:
-                    bounded_add<uint8_t, int16_t>(midi, std::get<encoder_delta>(m), 20, 108);
-                    freq = midi2freq(midi);
+                    bounded_add<uint8_t, int16_t>(midi, std::get<encoder_delta>(m), 0, 108);
                     printf("midi %d, f = %6.2f\n", midi, freq);
                     break;
                 case focus_ratio:
@@ -191,7 +195,11 @@ int main()
 
         index = translate(read<1>(), 190, 2100, 1., .0) * translate(read<2>(), 20, 4095, .0, 50.);
 
-        printf("%5d %5d %5d\n", read<0>(), read<1>(), read<2>());
+        float voct = volts(read<0>()) - 5.;
+
+        freq = midi2freq(midi + trunc(cv2midi(voct)));
+
+        printf("%5d %5d %5d %d %7.4f\n", read<0>(), read<1>(), read<2>(), midi, freq);
         sys_tick::delay_ms(20);
     }
 }
