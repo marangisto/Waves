@@ -4,7 +4,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
-Sheet 1 2
+Sheet 1 3
 Title "Cordic VCA"
 Date ""
 Rev ""
@@ -261,4 +261,10 @@ Wire Wire Line
 	12550 3700 12550 4300
 Wire Wire Line
 	12550 4300 12950 4300
+$Sheet
+S 4850 9600 850  800 
+U 5DBC944B
+F0 "POWER" 50
+F1 "POWER.sch" 50
+$EndSheet
 $EndSCHEMATC
