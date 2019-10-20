@@ -6,6 +6,7 @@
 *.bak
 *.bck
 *.kicad_pcb-bak
+*-bak
 *~
 _autosave-*
 *.tmp
@@ -28,3 +29,4 @@ _autosave-*
 # Dev files
 *.swp
 _build
+~*xlsx
