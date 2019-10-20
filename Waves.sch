@@ -1,11 +1,11 @@
 EESchema Schematic File Version 4
-LIBS:CordicVCO-cache
+LIBS:Waves-cache
 EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
 Sheet 1 10
-Title "Cordic VCA"
+Title "Waves VCO"
 Date ""
 Rev ""
 Comp "Marangisto"

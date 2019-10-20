@@ -39,7 +39,7 @@ void setup()
     serial::setup<115200>();
     hal::nvic<interrupt::USART2>::enable();
     stdio_t::bind<serial>();
-    printf("Cordic VCO v0.1\n");
+    printf("Waves VCO v0.1\n");
 
     probe::setup();
     led::setup();
