@@ -171,17 +171,6 @@ Wire Wire Line
 Wire Wire Line
 	7400 2200 7400 2150
 $Comp
-L Regulator_Linear:LM1117-3.3 U6
-U 1 1 5D1A798F
-P 6400 1800
-F 0 "U6" H 6400 2042 50  0000 C CNN
-F 1 "LM1117-3.3" H 6400 1951 50  0000 C CNN
-F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 6400 1800 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/lm1117.pdf" H 6400 1800 50  0001 C CNN
-	1    6400 1800
-	1    0    0    -1  
-$EndComp
-$Comp
 L Device:CP C33
 U 1 1 5D1A794B
 P 5100 5100
@@ -395,17 +384,6 @@ Wire Wire Line
 	6400 3650 6950 3650
 Wire Wire Line
 	7400 3650 7400 3600
-$Comp
-L Regulator_Linear:LM1117-3.3 U7
-U 1 1 5DC262F0
-P 6400 3250
-F 0 "U7" H 6400 3492 50  0000 C CNN
-F 1 "LM1117-3.3" H 6400 3401 50  0000 C CNN
-F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 6400 3250 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/lm1117.pdf" H 6400 3250 50  0001 C CNN
-	1    6400 3250
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	7400 3250 7800 3250
 $Comp
@@ -707,4 +685,26 @@ F 3 "" H 5850 3250 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	3900 6800 4600 6800
+$Comp
+L Regulator_Switching:R-78E3.3-0.5 U6
+U 1 1 5DCCF8BD
+P 6400 1800
+F 0 "U6" H 6400 2042 50  0000 C CNN
+F 1 "R-78E3.3-0.5" H 6400 1951 50  0000 C CNN
+F 2 "Converter_DCDC:Converter_DCDC_RECOM_R-78E-0.5_THT" H 6450 1550 50  0001 L CIN
+F 3 "https://www.recom-power.com/pdf/Innoline/R-78Exx-0.5.pdf" H 6400 1800 50  0001 C CNN
+	1    6400 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Local:LD2981ABU33TR U7
+U 1 1 5DCE4818
+P 6400 3250
+F 0 "U7" H 6400 3492 50  0000 C CNN
+F 1 "LD2981ABU33TR" H 6400 3401 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-89-3" H 6400 3450 50  0001 C CIN
+F 3 "http://www.fairchildsemi.com/ds/LM/LM78L05A.pdf" H 6400 3200 50  0001 C CNN
+	1    6400 3250
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
