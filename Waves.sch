@@ -978,19 +978,6 @@ Wire Wire Line
 	3000 8500 3350 8500
 Text GLabel 3350 8500 2    50   Input ~ 0
 TRIGB
-$Comp
-L power:+3.3V #PWR?
-U 1 1 5DE20AE6
-P 2200 8350
-AR Path="/5DD41DD6/5DE20AE6" Ref="#PWR?"  Part="1" 
-AR Path="/5DE20AE6" Ref="#PWR011"  Part="1" 
-F 0 "#PWR011" H 2200 8200 50  0001 C CNN
-F 1 "+3.3V" H 2215 8523 50  0000 C CNN
-F 2 "" H 2200 8350 50  0001 C CNN
-F 3 "" H 2200 8350 50  0001 C CNN
-	1    2200 8350
-	1    0    0    -1  
-$EndComp
 $Sheet
 S 8200 6500 550  450 
 U 5DE2B991
@@ -1204,19 +1191,6 @@ Wire Wire Line
 	3000 7650 3350 7650
 Text GLabel 3350 7650 2    50   Input ~ 0
 TRIGA
-$Comp
-L power:+3.3V #PWR?
-U 1 1 5E00866C
-P 2200 7500
-AR Path="/5DD41DD6/5E00866C" Ref="#PWR?"  Part="1" 
-AR Path="/5E00866C" Ref="#PWR09"  Part="1" 
-F 0 "#PWR09" H 2200 7350 50  0001 C CNN
-F 1 "+3.3V" H 2215 7673 50  0000 C CNN
-F 2 "" H 2200 7500 50  0001 C CNN
-F 3 "" H 2200 7500 50  0001 C CNN
-	1    2200 7500
-	1    0    0    -1  
-$EndComp
 Text GLabel 6850 4700 0    50   Input ~ 0
 TRIGA
 Text GLabel 6850 4900 0    50   Input ~ 0
@@ -1881,4 +1855,26 @@ Connection ~ 9900 10000
 Wire Wire Line
 	9900 10400 10300 10400
 Connection ~ 9900 10400
+$Comp
+L power:+3.3VA #PWR?
+U 1 1 5DE2E1FE
+P 2200 7500
+F 0 "#PWR?" H 2200 7350 50  0001 C CNN
+F 1 "+3.3VA" H 2215 7673 50  0000 C CNN
+F 2 "" H 2200 7500 50  0001 C CNN
+F 3 "" H 2200 7500 50  0001 C CNN
+	1    2200 7500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3VA #PWR?
+U 1 1 5DE2E9F0
+P 2200 8350
+F 0 "#PWR?" H 2200 8200 50  0001 C CNN
+F 1 "+3.3VA" H 2215 8523 50  0000 C CNN
+F 2 "" H 2200 8350 50  0001 C CNN
+F 3 "" H 2200 8350 50  0001 C CNN
+	1    2200 8350
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
