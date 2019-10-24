@@ -736,60 +736,6 @@ Text HLabel 2100 2700 0    50   Input ~ 0
 SD
 Text HLabel 2100 2800 0    50   Input ~ 0
 CK
-Wire Wire Line
-	2100 2800 2350 2800
-$Comp
-L Connector:TestPoint TP5
-U 1 1 5DB971FF
-P 2550 2350
-F 0 "TP5" H 2608 2468 50  0000 L CNN
-F 1 "TestPoint" H 2608 2377 50  0000 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 2750 2350 50  0001 C CNN
-F 3 "~" H 2750 2350 50  0001 C CNN
-	1    2550 2350
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector:TestPoint TP6
-U 1 1 5DB97C07
-P 2750 2350
-F 0 "TP6" H 2808 2468 50  0000 L CNN
-F 1 "TestPoint" H 2808 2377 50  0000 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 2950 2350 50  0001 C CNN
-F 3 "~" H 2950 2350 50  0001 C CNN
-	1    2750 2350
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector:TestPoint TP4
-U 1 1 5DB97CD5
-P 2350 2350
-F 0 "TP4" H 2408 2468 50  0000 L CNN
-F 1 "TestPoint" H 2408 2377 50  0000 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 2550 2350 50  0001 C CNN
-F 3 "~" H 2550 2350 50  0001 C CNN
-	1    2350 2350
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2100 2700 2550 2700
-Wire Wire Line
-	2100 2600 2750 2600
-Wire Wire Line
-	2350 2350 2350 2800
-Connection ~ 2350 2800
-Wire Wire Line
-	2350 2800 3050 2800
-Wire Wire Line
-	2550 2350 2550 2700
-Connection ~ 2550 2700
-Wire Wire Line
-	2550 2700 3050 2700
-Wire Wire Line
-	2750 2350 2750 2600
-Connection ~ 2750 2600
-Wire Wire Line
-	2750 2600 3050 2600
 $Comp
 L power:GNDA #PWR?
 U 1 1 5E3691B1
@@ -855,4 +801,10 @@ F 3 "" H 6400 6850 50  0001 C CNN
 	1    6400 6850
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	2100 2800 3050 2800
+Wire Wire Line
+	2100 2700 3050 2700
+Wire Wire Line
+	2100 2600 3050 2600
 $EndSCHEMATC
