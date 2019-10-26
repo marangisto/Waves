@@ -1603,9 +1603,9 @@ Text GLabel 3800 2150 2    50   Input ~ 0
 CV4A
 Text GLabel 3800 4750 2    50   Input ~ 0
 CV2B
-Text GLabel 3800 4900 2    50   Input ~ 0
-CV3B
 Text GLabel 3800 5050 2    50   Input ~ 0
+CV3B
+Text GLabel 3800 4900 2    50   Input ~ 0
 CV4B
 Wire Wire Line
 	3650 4600 3800 4600
