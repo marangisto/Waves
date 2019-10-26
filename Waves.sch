@@ -61,13 +61,13 @@ $EndComp
 Text GLabel 10850 2300 0    50   Input ~ 0
 I2S_WS
 Text GLabel 10850 2450 0    50   Input ~ 0
-I2S_SD
+I2S+
 Text GLabel 10850 2600 0    50   Input ~ 0
-I2S_CK
+I2S-
 Text GLabel 8750 3600 2    50   Input ~ 0
-I2S_CK
+I2S-
 Text GLabel 8750 3400 2    50   Input ~ 0
-I2S_SD
+I2S+
 Text GLabel 8750 3700 2    50   Input ~ 0
 I2S_WS
 $Sheet
@@ -572,9 +572,9 @@ $EndComp
 Wire Wire Line
 	11900 4800 11900 4900
 Text GLabel 11050 5350 0    50   Input ~ 0
-TFT_SCL
+TFT-
 Text GLabel 11050 5450 0    50   Input ~ 0
-TFT_SDA
+TFT+
 Wire Wire Line
 	11050 5350 11550 5350
 Wire Wire Line
@@ -670,9 +670,9 @@ Connection ~ 10750 7950
 Text GLabel 12650 5350 2    50   Input ~ 0
 TFT_RES
 Text GLabel 6850 4200 0    50   Input ~ 0
-TFT_SCL
+TFT-
 Text GLabel 6850 4400 0    50   Input ~ 0
-TFT_SDA
+TFT+
 Text GLabel 6850 4600 0    50   Input ~ 0
 TFT_DC
 Text GLabel 8750 3500 2    50   Input ~ 0
