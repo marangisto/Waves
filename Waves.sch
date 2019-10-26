@@ -1191,9 +1191,9 @@ Wire Wire Line
 	3000 7650 3350 7650
 Text GLabel 3350 7650 2    50   Input ~ 0
 TRIGA
-Text GLabel 6850 4700 0    50   Input ~ 0
+Text GLabel 6850 3300 0    50   Input ~ 0
 TRIGA
-Text GLabel 6850 4900 0    50   Input ~ 0
+Text GLabel 6850 3100 0    50   Input ~ 0
 TRIGB
 $Sheet
 S 8200 7200 550  450 
@@ -1227,15 +1227,15 @@ Wire Wire Line
 	7950 8200 8200 8200
 Wire Wire Line
 	8200 8050 7950 8050
-Text GLabel 6850 3100 0    50   Input ~ 0
+Text GLabel 6850 4900 0    50   Input ~ 0
 LED1
 Text GLabel 4350 6550 0    50   Input ~ 0
 BTN1
-Text GLabel 6850 3200 0    50   Input ~ 0
+Text GLabel 6850 4700 0    50   Input ~ 0
 LED2
 Text GLabel 4350 6950 0    50   Input ~ 0
 BTN2
-Text GLabel 8750 4000 2    50   Input ~ 0
+Text GLabel 6850 3200 0    50   Input ~ 0
 LED4
 Text GLabel 6100 6550 0    50   Input ~ 0
 BTN3
@@ -1681,7 +1681,7 @@ Wire Wire Line
 	7950 8900 8200 8900
 Wire Wire Line
 	8200 8750 7950 8750
-Text GLabel 6850 3300 0    50   Input ~ 0
+Text GLabel 8750 4000 2    50   Input ~ 0
 LED3
 Text GLabel 6100 6950 0    50   Input ~ 0
 BTN4
