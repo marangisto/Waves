@@ -1,13 +1,14 @@
 #include "board.h"
-#include "analog.h"
-#include "signal.h"
-#include "output.h"
+//#include "analog.h"
+//#include "signal.h"
+//#include "output.h"
 #include <math.h>
 
 using hal::sys_tick;
 using namespace board;
-using namespace analog;
+//using namespace analog;
 
+/*
 static inline float cv2midi(float x)
 {
     return 69 + x * 12.;
@@ -143,9 +144,28 @@ static void bounded_add(T& x, U y, T lb, T ub)
 
 enum focus_t { focus_freq, focus_ratio, focus_end };
 
+*/
+
+
+void loop()
+{
+    led1::toggle();
+    sys_tick::delay_ms(1);
+    led2::toggle();
+    sys_tick::delay_ms(1);
+    led3::toggle();
+    sys_tick::delay_ms(1);
+    led4::toggle();
+    sys_tick::delay_ms(10);
+}
+
 int main()
 {
     board::setup();
+
+    for (;;)
+        loop();
+    /*
     analog::setup();
     setup_cordic();
     modulator.setup(440);
@@ -202,5 +222,6 @@ int main()
         printf("%5d %5d %5d %d %7.4f\n", read<0>(), read<1>(), read<2>(), midi, freq);
         sys_tick::delay_ms(20);
     }
+    */
 }
 

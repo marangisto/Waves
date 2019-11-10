@@ -2,11 +2,12 @@
 
 #include <variant>
 #include <stdlib.h>
-#include <usart.h>
-#include <redirect.h>
 #include <timer.h>
 #include <button.h>
 #include <gpio.h>
+#include <i2s.h>
+#include <fifo.h>
+#include <st7789.h>
 
 namespace board
 {
@@ -14,55 +15,82 @@ namespace board
 using hal::sys_clock;
 using namespace hal::timer;
 using namespace hal::gpio;
+using namespace hal::i2s;
+using namespace st7789;
 
-typedef usart_t<2, PA2, PA3> serial;
 typedef hal::timer::timer_t<7> aux_tim;
 
-typedef output_t<PB8> led;
-typedef output_t<PA10> probe;
+// CV inputs
+typedef analog_t<PA0> cv1a;
+typedef analog_t<PA2> cv2a;
+typedef analog_t<PA3> cv3a;
+typedef analog_t<PB0> cv4a;
+typedef analog_t<PA1> cv1b;
+typedef analog_t<PA6> cv2b;
+typedef analog_t<PB11> cv3b;
+typedef analog_t<PB15> cv4b;
 
-typedef encoder_t<3, PA6, PA7> encoder;
-typedef button_t<PB5> encoder_btn;
-typedef button_t<PB3> push_btn;
+// trigger inputs
+typedef input_t<PC13> trigb;
+typedef input_t<PC15> triga;
 
+// user controls
+typedef encoder_t<4, PB6, PB7> encoder;
+typedef button_t<PB9> encoder_btn;
+typedef analog_t<PA4> btnsa;
+typedef analog_t<PB14> btnsb;
+typedef output_t<PB10> led1;
+typedef output_t<PB2> led2;
+typedef output_t<PA12> led3;
+typedef output_t<PC14> led4;
+
+// peripherals
+
+typedef st7789_t<1, PA5, PA7, PB1, PB4> tft;
+typedef i2s_t<2, PB3, PB5, PA15> dac;
+typedef output_t<PA10> mem_miso;
+typedef output_t<PA11> mem_mosi;
+typedef output_t<PA8> i2c_sda;
+typedef output_t<PA9> i2c_scl;
+typedef output_t<PB12> mem_cs;
+typedef output_t<PB13> mem_sck;
+
+// event message queue
 enum message_tag_t { button_press, encoder_delta };
 typedef std::variant<uint8_t, int16_t> message_t;
 typedef fifo_t<message_t, 0, 8> mq;
 
-typedef analog_t<PA0> ain1;
-typedef analog_t<PA1> ain2;
-typedef analog_t<PB0> ain3;
-
 void setup()
 {
-    interrupt::enable();
-    serial::setup<115200>();
-    hal::nvic<interrupt::USART2>::enable();
-    stdio_t::bind<serial>();
-    printf("Waves VCO v0.1\n");
+    cv1a::setup();
+    cv2a::setup();
+    cv3a::setup();
+    cv4a::setup();
+    cv1b::setup();
+    cv2b::setup();
+    cv3b::setup();
+    cv4b::setup();
 
-    probe::setup();
-    led::setup();
+    triga::setup();
+    trigb::setup();
+
+    encoder::setup<pull_up>(65535);
+    encoder_btn::setup<pull_up>();
+    btnsa::setup();
+    btnsb::setup();
+    led1::setup();
+    led2::setup();
+    led3::setup();
+    led4::setup();
+
+    interrupt::enable();
 
     aux_tim::setup(10 - 1, sys_clock::freq() / 10000 - 1);  // 1kHz
     aux_tim::update_interrupt_enable();
     hal::nvic<interrupt::TIM7>::enable();
-
-    encoder::setup<pull_up>(65535);
-    encoder_btn::setup<pull_up>();
-    push_btn::setup<pull_up>();
-
-    ain1::setup();
-    ain2::setup();
-    ain3::setup();
 }
 
 } // namespace board
-
-template<> void handler<interrupt::USART2>()
-{
-    serial::isr();
-}
 
 template<> void handler<interrupt::TIM7>()
 {
@@ -73,12 +101,9 @@ template<> void handler<interrupt::TIM7>()
 
     aux_tim::clear_uif();
     encoder_btn::update();
-    push_btn::update();
 
     if (encoder_btn::read())
         mq::put(m.emplace<button_press>(0));
-    if (push_btn::read())
-        mq::put(m.emplace<button_press>(1));
 
     int16_t c = static_cast<int16_t>(encoder::count()) >> 1;
 
