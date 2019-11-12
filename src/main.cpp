@@ -150,13 +150,13 @@ enum focus_t { focus_freq, focus_ratio, focus_end };
 void loop()
 {
     led1::toggle();
-    sys_tick::delay_ms(1);
+    sys_tick::delay_ms(100);
     led2::toggle();
-    sys_tick::delay_ms(1);
+    sys_tick::delay_ms(100);
     led3::toggle();
-    sys_tick::delay_ms(1);
+    sys_tick::delay_ms(100);
     led4::toggle();
-    sys_tick::delay_ms(10);
+    sys_tick::delay_ms(100);
 }
 
 int main()

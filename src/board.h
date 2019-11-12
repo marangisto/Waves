@@ -47,7 +47,7 @@ typedef output_t<PC14> led4;
 // peripherals
 
 typedef st7789_t<1, PA5, PA7, PB1, PB4> tft;
-typedef i2s_t<2, PB3, PB5, PA15> dac;
+typedef i2s_t<3, PB3, PB5, PA15> dac;
 typedef output_t<PA10> mem_miso;
 typedef output_t<PA11> mem_mosi;
 typedef output_t<PA8> i2c_sda;
