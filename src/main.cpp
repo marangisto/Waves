@@ -2,6 +2,7 @@
 //#include "analog.h"
 //#include "signal.h"
 //#include "output.h"
+#include "test.h"
 #include <math.h>
 
 using hal::sys_tick;
@@ -147,8 +148,10 @@ enum focus_t { focus_freq, focus_ratio, focus_end };
 */
 
 
-void loop()
+void loop(gui_t & gui)
 {
+    static uint8_t i = 0;
+
     led1::toggle();
     sys_tick::delay_ms(100);
     led2::toggle();
@@ -157,14 +160,19 @@ void loop()
     sys_tick::delay_ms(100);
     led4::toggle();
     sys_tick::delay_ms(100);
+    gui.fbox = ++i;
 }
 
 int main()
 {
     board::setup();
+    sys_tick::delay_ms(2000);
+    gui_t gui;
+
+    gui.render();
 
     for (;;)
-        loop();
+        loop(gui);
     /*
     analog::setup();
     setup_cordic();

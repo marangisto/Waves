@@ -8,6 +8,7 @@
 #include <i2s.h>
 #include <fifo.h>
 #include <st7789.h>
+#include <draw.h>
 
 namespace board
 {
@@ -17,6 +18,7 @@ using namespace hal::timer;
 using namespace hal::gpio;
 using namespace hal::i2s;
 using namespace st7789;
+using namespace graphics;
 
 typedef hal::timer::timer_t<7> aux_tim;
 
@@ -88,6 +90,9 @@ void setup()
     aux_tim::setup(10 - 1, sys_clock::freq() / 10000 - 1);  // 1kHz
     aux_tim::update_interrupt_enable();
     hal::nvic<interrupt::TIM7>::enable();
+
+    tft::setup<spi::fpclk_8>(dark_red);
+    pen_t<tft>(yellow).circle(119, 119, 100);
 }
 
 } // namespace board
