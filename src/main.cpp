@@ -148,31 +148,42 @@ enum focus_t { focus_freq, focus_ratio, focus_end };
 */
 
 
-void loop(gui_t & gui)
+void handle_message(gui_t & gui, const message_t& m)
 {
-    static uint8_t i = 0;
+    switch (m.index())
+    {
+    case button_press:
+        switch (std::get<button_press>(m))
+        {
+        case 0:
+            gui.encbtn.edit(1);
+            break;
+        default: ;  // unhandled button
+        }
+        break;
+    default: ;      // unhandled message
+    }
 
-    led1::toggle();
-    sys_tick::delay_ms(100);
-    led2::toggle();
-    sys_tick::delay_ms(100);
-    led3::toggle();
-    sys_tick::delay_ms(100);
-    led4::toggle();
-    sys_tick::delay_ms(100);
-    gui.fbox = ++i;
 }
 
 int main()
 {
     board::setup();
-    sys_tick::delay_ms(2000);
+    sys_tick::delay_ms(1000);
     gui_t gui;
 
     gui.render();
 
     for (;;)
-        loop(gui);
+    {
+        message_t m;
+        if (mq::get(m))
+            handle_message(gui, m);
+
+        led1::write(triga::read());
+        led2::write(trigb::read());
+    }
+
     /*
     analog::setup();
     setup_cordic();
