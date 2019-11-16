@@ -1,5 +1,5 @@
 #include "board.h"
-//#include "analog.h"
+#include "analog.h"
 //#include "signal.h"
 //#include "output.h"
 #include "test.h"
@@ -9,7 +9,7 @@
 using hal::sys_tick;
 using namespace board;
 using namespace hal::adc;
-//using namespace analog;
+using namespace analog;
 
 /*
 static inline float cv2midi(float x)
@@ -160,7 +160,8 @@ void handle_message(gui_t & gui, const message_t& m)
         switch (std::get<button_press>(m))
         {
         case 0:
-            gui.encbtn.edit(1);
+            led3::toggle();
+            gui.encbtn = led3::read();
             break;
         default: ;  // unhandled button
         }
@@ -173,13 +174,16 @@ void handle_message(gui_t & gui, const message_t& m)
 int main()
 {
     board::setup();
+    analog::setup();
     sys_tick::delay_ms(1000);
 
+    /*
     adc1::setup<16>();  // FIXME: select divider
     adc1::sample_time<1>();
     adc1::oversample<16>();
     adc1::sequence<5>();
     adc1::enable();
+    */
 
     adc2::setup<16>();  // FIXME: select divider
     adc2::sample_time<1>();
@@ -196,19 +200,22 @@ int main()
     for (;;)
     {
         message_t m;
+
         if (mq::get(m))
             handle_message(gui, m);
 
         led1::write(triga::read());
         led2::write(trigb::read());
-        gui.cnt = device::VREFBUF.CSR;
-        gui.btnsa = adc1::read();
+        gui.cv1a = reada<0>();
+        gui.cv2a = reada<1>();
+        gui.cv3a = reada<2>();
+        gui.cv4a = reada<3>();
+        gui.btnsa = reada<4>();
         gui.btnsb = adc2::read();
         sys_tick::delay_ms(1);
     }
 
     /*
-    analog::setup();
     setup_cordic();
     modulator.setup(440);
     carrier.setup(440);
