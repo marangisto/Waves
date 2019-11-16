@@ -160,8 +160,7 @@ void handle_message(gui_t & gui, const message_t& m)
         switch (std::get<button_press>(m))
         {
         case 0:
-            led3::toggle();
-            gui.encbtn = led3::read();
+            gui.encbtn = !gui.encbtn;
             break;
         default: ;  // unhandled button
         }
@@ -183,13 +182,13 @@ int main()
     adc1::oversample<16>();
     adc1::sequence<5>();
     adc1::enable();
-    */
 
     adc2::setup<16>();  // FIXME: select divider
     adc2::sample_time<1>();
     adc2::oversample<16>();
     adc2::sequence<17>();
     adc2::enable();
+    */
 
     gui_t gui;
 
@@ -210,8 +209,12 @@ int main()
         gui.cv2a = reada<1>();
         gui.cv3a = reada<2>();
         gui.cv4a = reada<3>();
+        gui.cv1b = readb<0>();
+        gui.cv2b = readb<1>();
+        gui.cv3b = readb<2>();
+        gui.cv4b = readb<3>();
         gui.btnsa = reada<4>();
-        gui.btnsb = adc2::read();
+        gui.btnsb = readb<4>();
         sys_tick::delay_ms(1);
     }
 
