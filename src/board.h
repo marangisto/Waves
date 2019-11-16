@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <timer.h>
 #include <button.h>
+#include <vrefbuf.h>
 #include <gpio.h>
 #include <i2s.h>
 #include <fifo.h>
@@ -14,6 +15,7 @@ namespace board
 {
 
 using hal::sys_clock;
+using namespace hal::vrefbuf;
 using namespace hal::timer;
 using namespace hal::gpio;
 using namespace hal::i2s;
@@ -93,6 +95,7 @@ void setup()
 
     tft::setup<spi::fpclk_8>(dark_red);
     pen_t<tft>(yellow).circle(119, 119, 100);
+    vrefbuf::vrefbuf_t::setup<vrs_2900>();
 }
 
 } // namespace board

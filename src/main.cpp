@@ -4,9 +4,11 @@
 //#include "output.h"
 #include "test.h"
 #include <math.h>
+#include <adc.h>
 
 using hal::sys_tick;
 using namespace board;
+using namespace hal::adc;
 //using namespace analog;
 
 /*
@@ -147,6 +149,8 @@ enum focus_t { focus_freq, focus_ratio, focus_end };
 
 */
 
+typedef adc_t<1> adc1;
+typedef adc_t<2> adc2;
 
 void handle_message(gui_t & gui, const message_t& m)
 {
@@ -170,9 +174,24 @@ int main()
 {
     board::setup();
     sys_tick::delay_ms(1000);
+
+    adc1::setup<16>();  // FIXME: select divider
+    adc1::sample_time<1>();
+    adc1::oversample<16>();
+    adc1::sequence<5>();
+    adc1::enable();
+
+    adc2::setup<16>();  // FIXME: select divider
+    adc2::sample_time<1>();
+    adc2::oversample<16>();
+    adc2::sequence<17>();
+    adc2::enable();
+
     gui_t gui;
 
     gui.render();
+
+    //uint8_t i = 0;
 
     for (;;)
     {
@@ -182,6 +201,10 @@ int main()
 
         led1::write(triga::read());
         led2::write(trigb::read());
+        gui.cnt = device::VREFBUF.CSR;
+        gui.btnsa = adc1::read();
+        gui.btnsb = adc2::read();
+        sys_tick::delay_ms(1);
     }
 
     /*
