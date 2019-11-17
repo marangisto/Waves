@@ -60,7 +60,7 @@ void setup()
     adc2::setup<6>();
     adc2::sample_time<2>();
     adc2::oversample<32>();
-    adc2::sequence<2, 2, 2, 3, 14, 15, 17>();
+    adc2::sequence<2, 2, 2, 3, 15, 14, 17>();
     adc2::dma<adc_dma, adc2_dma_ch>(adc2_buf, adc_buf_size);
     adc2::trigger<0x4>();        // FIXME: use symbol for TIM3_TRGO
     adc2::enable();
