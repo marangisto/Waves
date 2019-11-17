@@ -96,6 +96,8 @@ void setup()
     tft::setup<spi::fpclk_8>(dark_red);
     pen_t<tft>(yellow).circle(119, 119, 100);
     vrefbuf::vrefbuf_t::setup<vrs_2900>();
+
+    dac::setup<philips_i2s, low_level, format_32_32, 27>();
 }
 
 } // namespace board
