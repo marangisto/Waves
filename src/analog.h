@@ -20,7 +20,7 @@ typedef adc_t<2> adc2;
 typedef dma_t<1> adc_dma;
 static const uint8_t adc1_dma_ch = 1;
 static const uint8_t adc2_dma_ch = 2;
-static const uint32_t adc_sample_freq = 1000;
+static const uint32_t adc_sample_freq = 4000;
 static const uint8_t adc_buf_size = 7;
 static uint16_t adc1_buf[adc_buf_size];
 static uint16_t adc2_buf[adc_buf_size];
@@ -42,7 +42,7 @@ template<> inline uint16_t readb<4>() { return adc1_buf[6]; }
 
 void setup()
 {
-    adc_tim::setup(0, sys_clock::freq() / adc_sample_freq - 1);
+    adc_tim::setup(1, (sys_clock::freq() >> 1) / adc_sample_freq - 1);
     adc_tim::master_mode<adc_tim::mm_update>();
     adc_tim::update_interrupt_enable();
     hal::nvic<interrupt::TIM3>::enable();
@@ -50,7 +50,7 @@ void setup()
  
     adc1::setup<6>();
     adc1::sample_time<2>();
-    //adc1::oversample<32>();
+    adc1::oversample<32>();
     adc1::sequence<1, 1, 1, 3, 4, 15, 5>();
     adc1::dma<adc_dma, adc1_dma_ch>(adc1_buf, adc_buf_size);
     adc1::trigger<0x4>();        // FIXME: use symbol for TIM3_TRGO
@@ -59,7 +59,7 @@ void setup()
  
     adc2::setup<6>();
     adc2::sample_time<2>();
-    //adc2::oversample<32>();
+    adc2::oversample<32>();
     adc2::sequence<2, 2, 2, 3, 14, 15, 17>();
     adc2::dma<adc_dma, adc2_dma_ch>(adc2_buf, adc_buf_size);
     adc2::trigger<0x4>();        // FIXME: use symbol for TIM3_TRGO
@@ -76,6 +76,7 @@ template<> void handler<interrupt::TIM3>()
 {
     board::led3::set();
     analog::adc_tim::clear_uif();
+    board::led4::toggle();
 }
 
 template<> void handler<interrupt::ADC1_2>()
