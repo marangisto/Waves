@@ -18,7 +18,7 @@ public:
         using namespace hal::dma;
         using namespace hal::gpio;
         typedef dma_t<DMA> dma;
- 
+
         dma::setup();
         I2S::template setup<philips_i2s, low_level, format_32_32, 27>();
         I2S::template enable_dma<dma, DMACH>(reinterpret_cast<uint16_t*>(m_buf), NSMPL << 2);
@@ -27,7 +27,7 @@ public:
     static void test_signal()
     {
         using namespace fixed;
- 
+
         for (uint16_t i = 0; i < NSMPL; ++i)
         {
             uint16_t j = i << 1;
@@ -46,7 +46,7 @@ private:
     }
 
     static constexpr uint16_t BSIZE = NSMPL << 1;    // hold both channels
-    static int32_t m_buf[BSIZE];   
+    static int32_t m_buf[BSIZE];
 };
 
 template<typename I2S, uint8_t DMA, uint8_t DMACH, uint16_t NSMPL>

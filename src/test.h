@@ -21,7 +21,7 @@ struct gui_t
     widget_t<tft, bool> encbtn;
 
     gui_t()
-        : font(fontlib::cmuntt_24)
+        : font(fontlib::cmuntt_36)
         , cv1a(font, yellow, blue, w*0, h*0, w, h, [](auto x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }, [](auto& x, int i) { x += i; }, true)
         , cv2a(font, yellow, blue, w*0, h*1, w, h, [](auto x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }, [](auto& x, int i) { x += i; }, true)
         , cv3a(font, yellow, blue, w*0, h*2, w, h, [](auto x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }, [](auto& x, int i) { x += i; }, true)
