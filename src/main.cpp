@@ -2,6 +2,7 @@
 #include "analog.h"
 //#include "signal.h"
 //#include "output.h"
+#include "dacdma.h"
 #include "test.h"
 #include <math.h>
 #include <adc.h>
@@ -176,7 +177,6 @@ int main()
     analog::setup();
     sys_tick::delay_ms(1000);
 
-    /*
     adc1::setup<16>();  // FIXME: select divider
     adc1::sample_time<1>();
     adc1::oversample<16>();
@@ -188,17 +188,15 @@ int main()
     adc2::oversample<16>();
     adc2::sequence<17>();
     adc2::enable();
-    */
 
     gui_t gui;
 
     gui.render();
 
-    uint16_t i = 0;
+    //uint16_t i = 0;
 
     for (;;)
     {
-        /*
         message_t m;
 
         if (mq::get(m))
@@ -217,9 +215,6 @@ int main()
         gui.btnsa = reada<4>();
         gui.btnsb = readb<4>();
         sys_tick::delay_ms(1);
-*/
-        dac::write32(0xffff - i);
-        dac::write32(i += 256);
     }
 
     /*

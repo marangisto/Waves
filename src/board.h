@@ -10,6 +10,7 @@
 #include <fifo.h>
 #include <st7789.h>
 #include <draw.h>
+#include <dacdma.h>
 
 namespace board
 {
@@ -21,6 +22,7 @@ using namespace hal::gpio;
 using namespace hal::i2s;
 using namespace st7789;
 using namespace graphics;
+using namespace dacdma;
 
 typedef hal::timer::timer_t<7> aux_tim;
 
@@ -51,7 +53,8 @@ typedef output_t<PC14> led4;
 // peripherals
 
 typedef st7789_t<1, PA5, PA7, PB1, PB4> tft;
-typedef i2s_t<3, PB3, PB5, PA15> dac;
+//typedef i2s_t<3, PB3, PB5, PA15> dac;
+//typedef dacdma_t<dac, 2, 1, 128> dacdma;
 typedef output_t<PA10> mem_miso;
 typedef output_t<PA11> mem_mosi;
 typedef output_t<PA8> i2c_sda;
@@ -97,7 +100,9 @@ void setup()
     pen_t<tft>(yellow).circle(119, 119, 100);
     vrefbuf::vrefbuf_t::setup<vrs_2900>();
 
-    dac::setup<philips_i2s, low_level, format_32_32, 27>();
+    //dacdma::setup();
+    //dacdma::test_signal();
+    //dac::setup<philips_i2s, low_level, format_32_32, 27>();
 }
 
 } // namespace board
