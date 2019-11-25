@@ -170,11 +170,30 @@ void handle_message(gui_t & gui, const message_t& m)
 
 }
 
+template<> void handler<interrupt::EXTI15_10>()
+{
+    if (triga::interrupt_pending())
+    {
+        triga::clear_interrupt();
+        led1::toggle();
+    }
+
+    if (trigb::interrupt_pending())
+    {
+        trigb::clear_interrupt();
+        led2::toggle();
+    }
+}
+
 int main()
 {
     board::setup();
     analog::setup();
     sys_tick::delay_ms(1000);
+
+    triga::enable_interrupt<falling_edge>();
+    trigb::enable_interrupt<falling_edge>();
+    hal::nvic<interrupt::EXTI15_10>::enable();
 
     gui_t gui;
 
@@ -189,8 +208,6 @@ int main()
         if (mq::get(m))
             handle_message(gui, m);
 
-        led1::write(triga::read());
-        led2::write(trigb::read());
         gui.cv1a = reada<0>();
         gui.cv2a = reada<1>();
         gui.cv3a = reada<2>();
