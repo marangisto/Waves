@@ -1,7 +1,6 @@
 #include "board.h"
 #include "analog.h"
-//#include "signal.h"
-//#include "output.h"
+#include "signal.h"
 #include "test.h"
 #include <math.h>
 #include <adc.h>
@@ -50,7 +49,9 @@ static inline float translate(uint16_t x, uint16_t x0, uint16_t x1, float y0, fl
 }
 
 static signal_generator_t<sine, 96000> modulator;
+*/
 static signal_generator_t<sine, 96000> carrier;
+/*
 
 static volatile float freq = 440.;
 static volatile float index = 0.5;
@@ -187,7 +188,7 @@ template<> void handler<interrupt::EXTI15_10>()
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = i * 256;
+        *buf = fixed::ftoq31(carrier.sample());
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
@@ -213,6 +214,9 @@ int main()
     trigb::enable_interrupt<falling_edge>();
     hal::nvic<interrupt::EXTI15_10>::enable();
     hal::nvic<interrupt::DMA2_CH1>::enable();
+
+    setup_cordic();
+    carrier.setup(100.);
 
     gui_t gui;
 

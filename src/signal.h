@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fixed.h>
 #include <cordic.h>
 
 void setup_cordic()
@@ -50,6 +51,7 @@ struct sine
     static inline float value(float phi)
     {
         using namespace hal::cordic;
+        using namespace fixed;
 
         return q31tof(cordic::compute(ftoq31(phi)));
     }
