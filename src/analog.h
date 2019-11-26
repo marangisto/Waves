@@ -76,7 +76,6 @@ template<> void handler<interrupt::TIM3>()
 {
     board::led3::set();
     analog::adc_tim::clear_uif();
-    board::led4::toggle();
 }
 
 template<> void handler<interrupt::ADC1_2>()

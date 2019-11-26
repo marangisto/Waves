@@ -167,7 +167,6 @@ void handle_message(gui_t & gui, const message_t& m)
         break;
     default: ;      // unhandled message
     }
-
 }
 
 template<> void handler<interrupt::EXTI15_10>()
@@ -185,6 +184,25 @@ template<> void handler<interrupt::EXTI15_10>()
     }
 }
 
+static void fa(int32_t *buf, uint16_t n, uint8_t stride)
+{
+    for (uint16_t i = 0; i < n; ++i, buf += stride)
+        *buf = i * 256;
+}
+
+static void fb(int32_t *buf, uint16_t n, uint8_t stride)
+{
+    for (uint16_t i = 0; i < n; ++i, buf += stride)
+        *buf = -i * 256;
+}
+
+template<> void handler<interrupt::DMA2_CH1>()
+{
+    led4::set();
+    board::dacdma::handle_interrupt(fa, fb);
+    led4::clear();
+}
+
 int main()
 {
     board::setup();
@@ -194,6 +212,7 @@ int main()
     triga::enable_interrupt<falling_edge>();
     trigb::enable_interrupt<falling_edge>();
     hal::nvic<interrupt::EXTI15_10>::enable();
+    hal::nvic<interrupt::DMA2_CH1>::enable();
 
     gui_t gui;
 
