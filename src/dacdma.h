@@ -60,12 +60,12 @@ public:
         }
     }
 
-private:
     static inline uint32_t swap(uint32_t x)
     {
         return x << 16 | x >> 16;
     }
 
+private:
     static constexpr uint16_t BSIZE = NSMPL << 1;    // hold both channels
     static int32_t m_buf[BSIZE];
 };

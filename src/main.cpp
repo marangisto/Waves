@@ -50,7 +50,8 @@ static inline float translate(uint16_t x, uint16_t x0, uint16_t x1, float y0, fl
 
 static signal_generator_t<sine, 96000> modulator;
 */
-static signal_generator_t<sine, 96000> carrier;
+static signal_generator_t<sine, 96000> carriera;
+static signal_generator_t<sine, 96000> carrierb;
 /*
 
 static volatile float freq = 440.;
@@ -188,13 +189,13 @@ template<> void handler<interrupt::EXTI15_10>()
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = fixed::ftoq31(carrier.sample());
+        *buf = board::dacdma::swap(carriera.sample());
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = -i * 256;
+        *buf = board::dacdma::swap(carrierb.sample());
 }
 
 template<> void handler<interrupt::DMA2_CH1>()
@@ -216,7 +217,8 @@ int main()
     hal::nvic<interrupt::DMA2_CH1>::enable();
 
     setup_cordic();
-    carrier.setup(100.);
+    carriera.setup(220.);
+    carrierb.setup(330.);
 
     gui_t gui;
 

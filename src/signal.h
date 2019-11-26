@@ -25,9 +25,9 @@ public:
         m_dphi = 2. * freq / SAMPLE_FREQ;
     }
 
-    float sample()
+    int32_t sample()
     {
-        float s = WAVEGEN::value(m_phi);                // generate signal value
+        int32_t s = WAVEGEN::value(m_phi);              // generate signal value
 
         m_phi += m_dphi;                                // advance angle
 
@@ -48,12 +48,12 @@ struct sine
 {
     typedef hal::cordic::cordic_t cordic;   // FIXME: leaking device into here?
 
-    static inline float value(float phi)
+    static inline int32_t value(float phi)
     {
         using namespace hal::cordic;
         using namespace fixed;
 
-        return q31tof(cordic::compute(ftoq31(phi)));
+        return cordic::compute(ftoq31(phi));
     }
 };
 
