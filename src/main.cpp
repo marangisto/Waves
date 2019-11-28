@@ -1,14 +1,18 @@
 #include "board.h"
 #include "analog.h"
 #include "signal.h"
+#include "synth.h"
 #include "test.h"
 #include <math.h>
-#include <adc.h>
+#include <fixed.h>
 
 using hal::sys_tick;
 using namespace board;
-using namespace hal::adc;
 using namespace analog;
+using namespace synth;
+using namespace fixed;
+
+static const uint32_t SAMPLE_FREQ = 96000;
 
 /*
 static inline float cv2midi(float x)
@@ -48,10 +52,12 @@ static inline float translate(uint16_t x, uint16_t x0, uint16_t x1, float y0, fl
     return y0 + (y1 - y0) * (x - x0) / static_cast<float>(x1 - x0);
 }
 
-static signal_generator_t<sine, 96000> modulator;
+static signal_generator_t<sine, SAMPLE_FREQ> modulator;
 */
-static signal_generator_t<sine, 96000> carriera;
-static signal_generator_t<sine, 96000> carrierb;
+static signal_generator_t<sine, SAMPLE_FREQ> carriera;
+static signal_generator_t<sine, SAMPLE_FREQ> carrierb;
+static ad_envelope_t<SAMPLE_FREQ> envelopea;
+static ad_envelope_t<SAMPLE_FREQ> envelopeb;
 /*
 
 static volatile float freq = 440.;
@@ -151,9 +157,6 @@ enum focus_t { focus_freq, focus_ratio, focus_end };
 
 */
 
-typedef adc_t<1> adc1;
-typedef adc_t<2> adc2;
-
 void handle_message(gui_t & gui, const message_t& m)
 {
     switch (m.index())
@@ -176,12 +179,14 @@ template<> void handler<interrupt::EXTI15_10>()
     if (triga::interrupt_pending())
     {
         triga::clear_interrupt();
+        envelopea.trigger();
         led1::toggle();
     }
 
     if (trigb::interrupt_pending())
     {
         trigb::clear_interrupt();
+        envelopeb.trigger();
         led2::toggle();
     }
 }
@@ -189,7 +194,7 @@ template<> void handler<interrupt::EXTI15_10>()
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap(carriera.sample());
+        *buf = board::dacdma::swap(ftoq31(envelopea.sample() * q31tof(carriera.sample())));
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
@@ -219,6 +224,9 @@ int main()
     setup_cordic();
     carriera.setup(220.);
     carrierb.setup(330.);
+
+    envelopea.set_a(1e-3);
+    envelopea.set_d(20e-3);
 
     gui_t gui;
 
