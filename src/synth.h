@@ -15,14 +15,21 @@ public:
 
     void trigger()
     {
-        m_t = .0;
+        m_t = m_a * sample();
     }
 
     float sample()
     {
-        float y = m_t < m_a ? m_t * m_1_a : (m_t < m_a + m_d ? 1. - (m_t - m_a) * m_1_d : .0);
+        float t = m_t;
+
         m_t += dt;
-        return y;
+
+        if (t < m_a)
+            return t * m_1_a;
+        else if (t < m_a + m_d)
+            return 1. - (t - m_a) * m_1_d;
+        else
+            return .0;
     }
 
     void set_a(float a)
