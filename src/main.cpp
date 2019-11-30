@@ -12,12 +12,18 @@ using namespace analog;
 using namespace synth;
 using namespace fixed;
 
-static const uint32_t SAMPLE_FREQ = 96000;
+static const uint32_t SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
 
-/*
+static const float voct_volt_per_adc = 1. / 464.67;
+
+static inline float adc2cv(uint16_t adc)
+{
+    return (2745.67 - static_cast<float>(adc)) * voct_volt_per_adc;
+}
+
 static inline float cv2midi(float x)
 {
-    return 69 + x * 12.;
+    return 60 + x * 12.;
 }
 
 static inline float midi2freq(float m)
@@ -25,14 +31,12 @@ static inline float midi2freq(float m)
     return 440 * pow(2., (m-69.) / 12.);
 }
 
-static inline float cv2freq(float x)
+static inline float cv2freq(float cv)
 {
-    static const float f0 = 440.;
-    static const float semi_tone = pow(2., 1. / 12.);
-
-    return f0 * pow(semi_tone, 12 * x);
+    return 440. * pow(2., cv - 9. / 12.);
 }
 
+/*
 static inline float volts(uint16_t x)
 {
     return x / (2048. / 5.);    // FIXME: amp stage has wrong range!
@@ -259,6 +263,10 @@ int main()
         gui.cv4b = readb<3>();
         gui.btnsa = reada<4>();
         gui.btnsb = readb<4>();
+
+        carriera.set_freq(cv2freq(adc2cv(reada<0>())));
+        carrierb.set_freq(cv2freq(adc2cv(readb<0>())));
+
         sys_tick::delay_ms(1);
     }
 
