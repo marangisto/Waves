@@ -5,6 +5,21 @@
 namespace synth
 {
 
+static inline float exp6(float x)
+{
+    x = 1. + x / 64;
+    x *= x; x *= x; x *= x;
+    x *= x; x *= x; x *= x;
+    return x;
+}
+
+static inline float exp_response(float x)
+{
+    static constexpr float a = log(1e-3);
+
+    return exp6(a * (1. - x));
+}
+
 template<uint32_t SAMPLE_FREQ>
 class ad_envelope_t
 {

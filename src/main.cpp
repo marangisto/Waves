@@ -194,7 +194,9 @@ template<> void handler<interrupt::EXTI15_10>()
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap(ftoq31(envelopea.sample() * q31tof(carriera.sample())));
+        *buf = board::dacdma::swap(
+                   ftoq31(exp_response(envelopea.sample()) * q31tof(carriera.sample()))
+               );
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
@@ -225,8 +227,8 @@ int main()
     carriera.setup(220.);
     carrierb.setup(330.);
 
-    envelopea.set_a(1e-3);
-    envelopea.set_d(20e-3);
+    envelopea.set_a(20e-3);
+    envelopea.set_d(0.5);
 
     gui_t gui;
 
