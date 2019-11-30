@@ -176,33 +176,37 @@ void handle_message(gui_t & gui, const message_t& m)
 
 template<> void handler<interrupt::EXTI15_10>()
 {
-    if (triga::interrupt_pending())
+    bool ba = triga::interrupt_pending();
+    bool bb = trigb::interrupt_pending();
+
+    if (ba)
     {
-        triga::clear_interrupt();
         envelopea.trigger();
         led1::toggle();
     }
 
-    if (trigb::interrupt_pending())
+    if (bb)
     {
-        trigb::clear_interrupt();
         envelopeb.trigger();
         led2::toggle();
     }
+
+    if (ba)
+        triga::clear_interrupt();
+    if (bb)
+        trigb::clear_interrupt();
 }
 
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap(
-                   ftoq31(exp_response(envelopea.sample()) * q31tof(carriera.sample()))
-               );
+        *buf = board::dacdma::swap(ftoq31(exp_response(envelopea.sample()) * q31tof(carriera.sample())));
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap(carrierb.sample());
+        *buf = board::dacdma::swap(ftoq31(exp_response(envelopeb.sample()) * q31tof(carrierb.sample())));
 }
 
 template<> void handler<interrupt::DMA2_CH1>()
@@ -229,6 +233,8 @@ int main()
 
     envelopea.set_a(20e-3);
     envelopea.set_d(0.5);
+    envelopeb.set_a(20e-3);
+    envelopeb.set_d(0.5);
 
     gui_t gui;
 
