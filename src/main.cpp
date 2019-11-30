@@ -203,12 +203,14 @@ template<> void handler<interrupt::EXTI15_10>()
 
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
+    carriera.set_freq(cv2freq(adc2cv(reada<0>())));
     for (uint16_t i = 0; i < n; ++i, buf += stride)
         *buf = board::dacdma::swap(ftoq31(exp_response(envelopea.sample()) * q31tof(carriera.sample())));
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
+    carrierb.set_freq(cv2freq(adc2cv(readb<0>())));
     for (uint16_t i = 0; i < n; ++i, buf += stride)
         *buf = board::dacdma::swap(ftoq31(exp_response(envelopeb.sample()) * q31tof(carrierb.sample())));
 }
@@ -263,9 +265,6 @@ int main()
         gui.cv4b = readb<3>();
         gui.btnsa = reada<4>();
         gui.btnsb = readb<4>();
-
-        carriera.set_freq(cv2freq(adc2cv(reada<0>())));
-        carrierb.set_freq(cv2freq(adc2cv(readb<0>())));
 
         sys_tick::delay_ms(1);
     }
