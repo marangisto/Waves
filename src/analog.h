@@ -74,13 +74,11 @@ void setup()
 
 template<> void handler<interrupt::TIM3>()
 {
-    board::led3::set();
     analog::adc_tim::clear_uif();
 }
 
 template<> void handler<interrupt::ADC1_2>()
 {
     device::ADC1.ISR |= device::adc1_t::ISR_EOS; // clear end of sequence flag
-    board::led3::clear();
 }
 

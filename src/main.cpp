@@ -1,5 +1,4 @@
 #include "board.h"
-#include "analog.h"
 #include "signal.h"
 #include "synth.h"
 #include "test.h"
@@ -171,9 +170,23 @@ void handle_message(gui_t & gui, const message_t& m)
         case 0:
             gui.encbtn = !gui.encbtn;
             break;
+        case 1:
+            gui.btnsa = gui.btnsa + 1;
+            break;
+        case 2:
+            gui.btnsa = gui.btnsa - 1;
+            break;
+        case 3:
+            gui.btnsb = gui.btnsb + 1;
+            break;
+        case 4:
+            gui.btnsb = gui.btnsb - 1;
+            break;
         default: ;  // unhandled button
         }
         break;
+    case encoder_delta:
+        gui.enc = gui.enc + std::get<encoder_delta>(m);
     default: ;      // unhandled message
     }
 }
@@ -225,7 +238,6 @@ template<> void handler<interrupt::DMA2_CH1>()
 int main()
 {
     board::setup();
-    analog::setup();
     sys_tick::delay_ms(1000);
 
     triga::enable_interrupt<falling_edge>();
@@ -263,8 +275,6 @@ int main()
         gui.cv2b = readb<1>();
         gui.cv3b = readb<2>();
         gui.cv4b = readb<3>();
-        gui.btnsa = reada<4>();
-        gui.btnsb = readb<4>();
 
         sys_tick::delay_ms(1);
     }

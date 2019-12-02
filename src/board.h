@@ -10,6 +10,7 @@
 #include <fifo.h>
 #include <st7789.h>
 #include <draw.h>
+#include <analog.h>
 #include <dacdma.h>
 
 namespace board
@@ -23,6 +24,7 @@ using namespace hal::i2s;
 using namespace st7789;
 using namespace graphics;
 using namespace dacdma;
+using namespace analog;
 
 typedef hal::timer::timer_t<7> aux_tim;
 
@@ -67,6 +69,17 @@ enum message_tag_t { button_press, encoder_delta };
 typedef std::variant<uint8_t, int16_t> message_t;
 typedef fifo_t<message_t, 0, 8> mq;
 
+// buttons decoder (corrsponding to mid-points on the adc readings)
+static uint8_t decode_btn(uint16_t x)
+{
+    if (x < 1175)
+        return 1;
+    else if (x < 3223)
+        return 2;
+    else
+        return 0;
+}
+
 void setup()
 {
     cv1a::setup();
@@ -102,6 +115,8 @@ void setup()
 
     dacdma::setup();
     dacdma::test_signal();
+
+    analog::setup();
 }
 
 } // namespace board
@@ -118,6 +133,25 @@ template<> void handler<interrupt::TIM7>()
 
     if (encoder_btn::read())
         mq::put(m.emplace<button_press>(0));
+
+    static uint8_t last_btnsa = 0, last_btnsb = 0;
+
+    uint8_t btnsa = decode_btn(reada<4>());
+    uint8_t btnsb = decode_btn(readb<4>());
+
+    if (btnsa != last_btnsa)
+    {
+        if (btnsa)
+            mq::put(m.emplace<button_press>(btnsa));
+        last_btnsa = btnsa;
+    }
+
+    if (btnsb != last_btnsb)
+    {
+        if (btnsb)
+            mq::put(m.emplace<button_press>(btnsb + 2));
+        last_btnsb = btnsb;
+    }
 
     int16_t c = static_cast<int16_t>(encoder::count()) >> 1;
 

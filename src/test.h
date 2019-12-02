@@ -19,6 +19,7 @@ struct gui_t
     widget_t<tft, int> cv1b, cv2b, cv3b, cv4b;
     widget_t<tft, int> btnsa, btnsb;
     widget_t<tft, bool> encbtn;
+    widget_t<tft, int> enc;
 
     gui_t()
         : font(fontlib::cmuntt_36)
@@ -33,6 +34,7 @@ struct gui_t
         , btnsa(font, yellow, blue, w*0, h*4, w, h, [](auto x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }, [](auto& x, int i) { x += i; }, true)
         , btnsb(font, yellow, blue, w*1, h*4, w, h, [](auto x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }, [](auto& x, int i) { x += i; }, true)
         , encbtn(font, yellow, red, w*0, h*5, w, h, [](auto x) { return x ? "true" : "false"; }, [](auto& x, int i) { x = !x; }, true)
+        , enc(font, yellow, red, w*1, h*5, w, h, [](auto x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }, [](auto& x, int i) { x += i; }, true)
         {
         }
 
@@ -49,6 +51,7 @@ struct gui_t
         cv4b.render();
         btnsb.render();
         encbtn.render();
+        enc.render();
     }
 };
 
