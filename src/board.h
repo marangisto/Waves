@@ -70,15 +70,30 @@ typedef std::variant<uint8_t, int16_t> message_t;
 typedef fifo_t<message_t, 0, 8> mq;
 
 // buttons decoder (corrsponding to mid-points on the adc readings)
-static uint8_t decode_btn(uint16_t x)
+
+class btns_decoder_t
 {
-    if (x < 1175)
-        return 1;
-    else if (x < 3223)
-        return 2;
-    else
-        return 0;
-}
+public:
+    void setup()
+    {
+        m_count = m_last = 0;
+    }
+
+    inline uint8_t decode(uint16_t x)  // call with ADC value
+    {
+        uint8_t y = x < 1175 ? 1 : (x < 3223 ? 2 : 0);
+
+        m_count = y != 0 && y == m_last ? m_count + 1 : 0;
+        m_last = y;
+        return m_count == 10 ? y : 0;
+    }
+
+private:
+    uint8_t m_count;
+    uint8_t m_last;
+};
+
+static btns_decoder_t bdeca, bdecb;
 
 void setup()
 {
@@ -117,6 +132,9 @@ void setup()
     dacdma::test_signal();
 
     analog::setup();
+
+    bdeca.setup();
+    bdecb.setup();
 }
 
 } // namespace board
@@ -134,24 +152,14 @@ template<> void handler<interrupt::TIM7>()
     if (encoder_btn::read())
         mq::put(m.emplace<button_press>(0));
 
-    static uint8_t last_btnsa = 0, last_btnsb = 0;
+    uint8_t ba = bdeca.decode(reada<4>());
+    uint8_t bb = bdecb.decode(readb<4>());
 
-    uint8_t btnsa = decode_btn(reada<4>());
-    uint8_t btnsb = decode_btn(readb<4>());
+    if (ba)
+        mq::put(m.emplace<button_press>(ba));
 
-    if (btnsa != last_btnsa)
-    {
-        if (btnsa)
-            mq::put(m.emplace<button_press>(btnsa));
-        last_btnsa = btnsa;
-    }
-
-    if (btnsb != last_btnsb)
-    {
-        if (btnsb)
-            mq::put(m.emplace<button_press>(btnsb + 2));
-        last_btnsb = btnsb;
-    }
+    if (bb)
+        mq::put(m.emplace<button_press>(bb + 2));
 
     int16_t c = static_cast<int16_t>(encoder::count()) >> 1;
 
