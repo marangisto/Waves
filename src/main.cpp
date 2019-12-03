@@ -11,6 +11,10 @@ using namespace analog;
 using namespace synth;
 using namespace fixed;
 
+typedef hal::timer::timer_t<2> dac_tim;
+
+static volatile uint32_t dac_load = 0;
+
 static const uint32_t SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
 
 static const float voct_volt_per_adc = 1. / 464.67;
@@ -230,13 +234,18 @@ static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 
 template<> void handler<interrupt::DMA2_CH1>()
 {
-    led4::set();
+    uint32_t total_count = dac_tim::count();
+
+    dac_tim::set_count(0);
     board::dacdma::handle_interrupt(fa, fb);
-    led4::clear();
+
+    if (total_count > 0)
+        dac_load = (100 * dac_tim::count()) / total_count;
 }
 
 int main()
 {
+    dac_tim::setup(170, 0xffff);
     board::setup();
     sys_tick::delay_ms(1000);
 
@@ -274,7 +283,8 @@ int main()
         gui.cv1b = readb<0>();
         gui.cv2b = readb<1>();
         gui.cv3b = readb<2>();
-        gui.cv4b = readb<3>();
+        //gui.cv4b = readb<3>();
+        gui.cv4b = dac_load;
 
         sys_tick::delay_ms(1);
     }
