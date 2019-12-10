@@ -55,8 +55,8 @@ public:
             constexpr uint16_t n = NSMPL >> 1;
             int32_t *p = m_buf + (sts & dma_transfer_complete ? NSMPL : 0);
 
-            fa(p, n, 2);
-            fb(p + 1, n, 2);
+            fb(p, n, 2);
+            fa(p + 1, n, 2);
         }
     }
 
