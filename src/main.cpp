@@ -190,7 +190,8 @@ void handle_message(gui_t & gui, const message_t& m)
         }
         break;
     case encoder_delta:
-        gui.enc = gui.enc + std::get<encoder_delta>(m);
+        gui.enc = gui.enc - std::get<encoder_delta>(m);
+        break;
     default: ;      // unhandled message
     }
 }
