@@ -238,7 +238,7 @@ template<> void handler<interrupt::DMA2_CH1>()
     uint32_t total_count = dac_tim::count();
 
     dac_tim::set_count(0);
-    board::dacdma::handle_interrupt(fa, fb);
+    board::dacdma::handle_interrupt();
 
     if (total_count > 0)
         dac_load = (100 * dac_tim::count()) / total_count;
@@ -247,6 +247,10 @@ template<> void handler<interrupt::DMA2_CH1>()
 int main()
 {
     dac_tim::setup(170, 0xffff);
+
+    board::dacdma::set_left_gen(fa);
+    board::dacdma::set_right_gen(fb);
+
     board::setup();
     sys_tick::delay_ms(1000);
 
@@ -348,4 +352,12 @@ int main()
     }
     */
 }
+
+namespace std
+{
+
+void __throw_bad_function_call() { while(1); }
+
+} // namespace std
+
 

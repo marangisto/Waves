@@ -4,9 +4,12 @@
 #include <gpio.h>
 #include <fixed.h>
 #include <math.h>
+#include <functional>
 
 namespace dacdma
 {
+
+typedef std::function<volatile void(int32_t *buf, uint16_t n, uint8_t stride)> dssgen_t;
 
 template<typename I2S, uint8_t DMA, uint8_t DMACH, uint16_t NSMPL>
 class dacdma_t
@@ -27,6 +30,9 @@ public:
         dma::template enable_interrupt<DMACH, true>();
     }
 
+    static void set_left_gen(dssgen_t g) { m_left_gen = g; }
+    static void set_right_gen(dssgen_t g) { m_right_gen = g; }
+
     static void test_signal()
     {
         using namespace fixed;
@@ -42,8 +48,7 @@ public:
         }
     }
 
-    template<typename F>
-    inline static void handle_interrupt(F fa, F fb)
+    inline static void handle_interrupt()
     {
         uint32_t sts = dma::template interrupt_status<DMACH>();
         using namespace hal::dma;
@@ -55,8 +60,8 @@ public:
             constexpr uint16_t n = NSMPL >> 1;
             int32_t *p = m_buf + (sts & dma_transfer_complete ? NSMPL : 0);
 
-            fb(p, n, 2);
-            fa(p + 1, n, 2);
+            m_right_gen(p, n, 2);
+            m_left_gen(p + 1, n, 2);
         }
     }
 
@@ -68,10 +73,19 @@ public:
 private:
     static constexpr uint16_t BSIZE = NSMPL << 1;    // hold both channels
     static int32_t m_buf[BSIZE];
+    static dssgen_t m_left_gen, m_right_gen;
 };
+
+static void null_ddsgen(int32_t *, uint16_t, uint8_t) {}
 
 template<typename I2S, uint8_t DMA, uint8_t DMACH, uint16_t NSMPL>
 int32_t dacdma_t<I2S, DMA, DMACH, NSMPL>::m_buf[dacdma_t<I2S, DMA, DMACH, NSMPL>::BSIZE];
+
+template<typename I2S, uint8_t DMA, uint8_t DMACH, uint16_t NSMPL>
+dssgen_t dacdma_t<I2S, DMA, DMACH, NSMPL>::m_left_gen = null_ddsgen;
+
+template<typename I2S, uint8_t DMA, uint8_t DMACH, uint16_t NSMPL>
+dssgen_t dacdma_t<I2S, DMA, DMACH, NSMPL>::m_right_gen = null_ddsgen;
 
 } // dacdma
 
