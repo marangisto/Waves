@@ -3,6 +3,8 @@
 #include <fixed.h>
 #include <cordic.h>
 
+using namespace fixed;
+
 void setup_cordic()
 {
     typedef hal::cordic::cordic_t cordic;   // FIXME: leaking device into here?
@@ -59,37 +61,37 @@ struct sine
 
 struct triangle
 {
-    static inline float value(float phi)
+    static inline int32_t value(float phi)
     {
         if (phi < -.5)
-            return 2. * phi + 2.;
+            return ftoq31(2. * phi + 2.);
         else if (phi < .5)
-            return -2. * phi;
+            return ftoq31(-2. * phi);
         else
-            return 2 * phi - 2.;
-        return phi;
+            return ftoq31(2 * phi - 2.);
+        return ftoq31(phi);
     }
 };
 
 struct sawtooth
 {
-    static inline float value(float phi)
+    static inline int32_t value(float phi)
     {
-        return phi;
+        return ftoq31(phi);
     }
 };
 
 struct square
 {
-    static inline float value(float phi)
+    static inline int32_t value(float phi)
     {
-        return phi < 0 ? 1. : -1.;
+        return ftoq31(phi < 0 ? 1. : -1.);
     }
 };
 
 struct mixed
 {
-    static inline float value(float phi)
+    static inline int32_t value(float phi)
     {
         switch (m_mode)
         {
