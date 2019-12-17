@@ -7,9 +7,9 @@ using namespace fixed;
 
 void setup_cordic()
 {
-    typedef hal::cordic::cordic_t cordic;   // FIXME: leaking device into here?
+    using namespace hal::cordic;
 
-    cordic::setup<cordic::sine, 4>();
+    cordic_t::setup<cordic_t::sine, 4>();
 }
 
 template<typename WAVEGEN, uint32_t SAMPLE_FREQ>
@@ -18,57 +18,58 @@ class signal_generator_t
 public:
     void setup(float freq = 440.)
     {
-        m_phi = -1.;
+        m_phi = q31_t::min_val;
         set_freq(freq);
     }
 
     void set_freq(float freq)
     {
-        m_dphi = ftoq31(2. * freq / SAMPLE_FREQ);
+        m_dphi = q31_t(2.0f * freq / SAMPLE_FREQ);
     }
 
     int32_t sample()
     {
-        int32_t s = WAVEGEN::value(m_phi);              // generate signal value
+        q31_t s = WAVEGEN::value(m_phi);            // generate signal value
 
-        m_phi += m_dphi;                                // advance angle
-        return s;
+        m_phi = m_phi + m_dphi;                     // advance angle
+        return s.q;
     }
 
 private:
-    int32_t             m_phi;      // FIXME: q31!
-    volatile int32_t    m_dphi;     // FIXME: q31!
+    q31_t           m_phi;
+    volatile q31_t  m_dphi;
 };
 
 struct sine
 {
-    typedef hal::cordic::cordic_t cordic;   // FIXME: leaking device into here?
-
-    static inline int32_t value(int32_t phi)    // FIXME: q31!
+    static inline q31_t value(q31_t phi)
     {
         using namespace hal::cordic;
 
-        return cordic::compute(phi);
+        return q31_t(cordic_t::compute(phi.q));
     }
 };
 
+
 struct triangle
 {
-    static inline int32_t value(float phi)    // FIXME: q31!
+    static inline q31_t value(q31_t phi)
     {
-        if (phi < -.5)
-            return ftoq31(2. * phi + 2.);
-        else if (phi < .5)
-            return ftoq31(-2. * phi);
+        static constexpr q31_t one(q31_t(1.0f));
+        static constexpr q31_t half(q31_t(0.5f));
+
+        if (phi < -half)
+            return q31_t::lshift(phi + one, 1);
+        else if (phi < half)
+            return q31_t::lshift(-phi, 1);
         else
-            return ftoq31(2 * phi - 2.);
-        return ftoq31(phi);
+            return q31_t::lshift(phi - one, 1);
     }
 };
 
 struct sawtooth
 {
-    static inline int32_t value(int32_t phi)    // FIXME: q31!
+    static inline q31_t value(q31_t phi)
     {
         return phi;
     }
@@ -76,15 +77,15 @@ struct sawtooth
 
 struct square
 {
-    static inline int32_t value(int32_t phi)    // FIXME: q31!
+    static inline q31_t value(q31_t phi)
     {
-        return phi < 0 ? q31_t::max_val.q : q31_t::min_val.q;
+        return phi < q31_t(0l) ? q31_t::max_val : q31_t::min_val;
     }
 };
 
 struct mixed
 {
-    static inline int32_t value(float phi)    // FIXME: q31!
+    static inline q31_t value(q31_t phi)
     {
         switch (m_mode)
         {
@@ -92,7 +93,7 @@ struct mixed
             case 1: return triangle::value(phi);
             case 2: return sawtooth::value(phi);
             case 3: return square::value(phi);
-            default: return 0;
+            default: return q31_t(0l);
         }
     }
 

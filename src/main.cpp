@@ -61,8 +61,8 @@ static inline float translate(uint16_t x, uint16_t x0, uint16_t x1, float y0, fl
 
 static signal_generator_t<sine, SAMPLE_FREQ> modulator;
 */
-static signal_generator_t<square, SAMPLE_FREQ> carriera;
-static signal_generator_t<square, SAMPLE_FREQ> carrierb;
+static signal_generator_t<sine, SAMPLE_FREQ> carriera;
+static signal_generator_t<sine, SAMPLE_FREQ> carrierb;
 static ad_envelope_t<SAMPLE_FREQ> envelopea;
 static ad_envelope_t<SAMPLE_FREQ> envelopeb;
 /*
