@@ -24,7 +24,7 @@ public:
 
     void set_freq(float freq)
     {
-        m_dphi = 2. * freq / SAMPLE_FREQ;
+        m_dphi = ftoq31(2. * freq / SAMPLE_FREQ);
     }
 
     int32_t sample()
@@ -32,36 +32,29 @@ public:
         int32_t s = WAVEGEN::value(m_phi);              // generate signal value
 
         m_phi += m_dphi;                                // advance angle
-
-        if (m_phi >= 1.)
-            m_phi -= 2.;
-        else if (m_phi <= -1.)
-            m_phi += 2.;
-
         return s;
     }
 
 private:
-    float           m_phi;
-    volatile float  m_dphi;
+    int32_t             m_phi;      // FIXME: q31!
+    volatile int32_t    m_dphi;     // FIXME: q31!
 };
 
 struct sine
 {
     typedef hal::cordic::cordic_t cordic;   // FIXME: leaking device into here?
 
-    static inline int32_t value(float phi)
+    static inline int32_t value(int32_t phi)    // FIXME: q31!
     {
         using namespace hal::cordic;
-        using namespace fixed;
 
-        return cordic::compute(ftoq31(phi));
+        return cordic::compute(phi);
     }
 };
 
 struct triangle
 {
-    static inline int32_t value(float phi)
+    static inline int32_t value(float phi)    // FIXME: q31!
     {
         if (phi < -.5)
             return ftoq31(2. * phi + 2.);
@@ -75,23 +68,23 @@ struct triangle
 
 struct sawtooth
 {
-    static inline int32_t value(float phi)
+    static inline int32_t value(int32_t phi)    // FIXME: q31!
     {
-        return ftoq31(phi);
+        return phi;
     }
 };
 
 struct square
 {
-    static inline int32_t value(float phi)
+    static inline int32_t value(int32_t phi)    // FIXME: q31!
     {
-        return ftoq31(phi < 0 ? 1. : -1.);
+        return phi < 0 ? q31_t::max_val.q : q31_t::min_val.q;
     }
 };
 
 struct mixed
 {
-    static inline int32_t value(float phi)
+    static inline int32_t value(float phi)    // FIXME: q31!
     {
         switch (m_mode)
         {
