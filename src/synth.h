@@ -1,9 +1,12 @@
 #pragma once
 
 #include <algorithm>
+#include <fixed.h>
 
 namespace synth
 {
+
+using namespace fixed;
 
 static inline float exp6(float x)
 {
@@ -20,6 +23,23 @@ static inline float exp_response(float x)
     return exp6(a * (1. - x));
 }
 
+__attribute__((always_inline))
+static inline q31_t response(q31_t x)
+{
+    static constexpr q31_t k = q31_t(log(1e-3) / 64.0f);
+    static constexpr q31_t one = q31_t(1.0);
+
+    x = (x - one) * k;
+    x = x + one;
+    x = x * x;
+    x = x * x;
+    x = x * x;
+    x = x * x;
+    x = x * x;
+    x = x * x;
+    return x;
+}
+
 template<uint32_t SAMPLE_FREQ>
 class ad_envelope_t
 {
@@ -33,7 +53,8 @@ public:
         m_t = m_a * sample();
     }
 
-    float sample()
+    __attribute__((always_inline))
+    inline float sample()
     {
         float t = m_t;
 

@@ -223,14 +223,14 @@ static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     carriera.set_freq(cv2freq(adc2cv(reada<0>())));
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap(ftoq31(exp_response(envelopea.sample()) * q31tof(carriera.sample())));
+        *buf = board::dacdma::swap((response(q31_t(envelopea.sample())) * q31_t(carriera.sample())).q);
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
     carrierb.set_freq(cv2freq(adc2cv(readb<0>())));
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap(ftoq31(exp_response(envelopeb.sample()) * q31tof(carrierb.sample())));
+        *buf = board::dacdma::swap((response(q31_t(envelopeb.sample())) * q31_t(carrierb.sample())).q);
 }
 
 template<> void handler<interrupt::DMA2_CH1>()
