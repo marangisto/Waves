@@ -95,8 +95,8 @@ private:
 };
 
 
-static operator_t opa1;
-static operator_t opb1;
+static operator_t opa1, opa2;
+static operator_t opb1, opb2;
 
 /*
 
@@ -237,12 +237,14 @@ template<> void handler<interrupt::EXTI15_10>()
     if (ba)
     {
         opa1.trigger();
+        opa2.trigger();
         led1::toggle();
     }
 
     if (bb)
     {
         opb1.trigger();
+        opb2.trigger();
         led2::toggle();
     }
 
@@ -254,16 +256,22 @@ template<> void handler<interrupt::EXTI15_10>()
 
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
-    opa1.control(cv2freq(adc2cv(reada<0>())), 0.0f);
+    float f = cv2freq(adc2cv(reada<0>()));
+
+    opa1.control(f, 3.0f);
+    opa2.control(f * 2.0f, 0.0f);
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap(opa1.sample().q);
+        *buf = board::dacdma::swap(opa1.sample(opa2.sample()).q);
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
-    opb1.control(cv2freq(adc2cv(readb<0>())), 0.0f);
+    float f = cv2freq(adc2cv(readb<0>()));
+
+    opb1.control(f, 3.0f);
+    opb2.control(f * 5.0f, 0.0f);
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap(opb1.sample().q);
+        *buf = board::dacdma::swap(opb1.sample(opb2.sample()).q);
 }
 
 template<> void handler<interrupt::DMA2_CH1>()
@@ -294,7 +302,9 @@ int main()
 
     setup_cordic();
     opa1.setup();
+    opa2.setup();
     opb1.setup();
+    opb2.setup();
 
     gui_t gui;
 
