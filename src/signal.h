@@ -19,25 +19,31 @@ public:
     void setup(float freq = 440.)
     {
         m_phi = q31_t::min_val;
-        set_freq(freq);
+        control(freq, 0.0f);
     }
 
-    void set_freq(float freq)
+    __attribute__((always_inline))
+    inline void control(float freq, float idx)
     {
-        m_dphi = q31_t(2.0f * freq / SAMPLE_FREQ);
+        float k = 2.0f * freq / SAMPLE_FREQ;
+
+        m_dphi = q31_t(k);
+        m_idx = q31_t(k * idx);
     }
 
-    int32_t sample()
+    __attribute__((always_inline))
+    inline q31_t sample(q31_t mod = q31_t())
     {
         q31_t s = WAVEGEN::value(m_phi);            // generate signal value
 
-        m_phi = m_phi + m_dphi;                     // advance angle
-        return s.q;
+        m_phi = m_phi + m_dphi + mod * m_idx;       // advance angle
+        return s;
     }
 
 private:
     q31_t           m_phi;
     volatile q31_t  m_dphi;
+    volatile q31_t  m_idx;
 };
 
 struct sine

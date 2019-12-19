@@ -61,10 +61,43 @@ static inline float translate(uint16_t x, uint16_t x0, uint16_t x1, float y0, fl
 
 static signal_generator_t<sine, SAMPLE_FREQ> modulator;
 */
-static signal_generator_t<sine, SAMPLE_FREQ> carriera;
-static signal_generator_t<sine, SAMPLE_FREQ> carrierb;
-static ad_envelope_t<SAMPLE_FREQ> envelopea;
-static ad_envelope_t<SAMPLE_FREQ> envelopeb;
+
+class operator_t
+{
+public:
+    void setup()
+    {
+        m_carrier.setup(220.);
+        m_envelope.set_a(20e-3);
+        m_envelope.set_d(0.5);
+    }
+
+    inline void control(float freq, float idx)
+    {
+        m_carrier.control(freq, idx);
+    }
+
+    __attribute__((always_inline))
+    inline q31_t sample(q31_t mod = q31_t())
+    {
+        return response(m_envelope.sample()) * m_carrier.sample(mod);
+    }
+
+    __attribute__((always_inline))
+    void trigger()
+    {
+        m_envelope.trigger();
+    }
+
+private:
+    signal_generator_t<sine, SAMPLE_FREQ>   m_carrier;
+    ad_envelope_t<SAMPLE_FREQ>              m_envelope;
+};
+
+
+static operator_t opa1;
+static operator_t opb1;
+
 /*
 
 static volatile float freq = 440.;
@@ -203,13 +236,13 @@ template<> void handler<interrupt::EXTI15_10>()
 
     if (ba)
     {
-        envelopea.trigger();
+        opa1.trigger();
         led1::toggle();
     }
 
     if (bb)
     {
-        envelopeb.trigger();
+        opb1.trigger();
         led2::toggle();
     }
 
@@ -221,16 +254,16 @@ template<> void handler<interrupt::EXTI15_10>()
 
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
-    carriera.set_freq(cv2freq(adc2cv(reada<0>())));
+    opa1.control(cv2freq(adc2cv(reada<0>())), 0.0f);
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap((response(envelopea.sample()) * q31_t(carriera.sample())).q);
+        *buf = board::dacdma::swap(opa1.sample().q);
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
-    carrierb.set_freq(cv2freq(adc2cv(readb<0>())));
+    opb1.control(cv2freq(adc2cv(readb<0>())), 0.0f);
     for (uint16_t i = 0; i < n; ++i, buf += stride)
-        *buf = board::dacdma::swap((response(envelopeb.sample()) * q31_t(carrierb.sample())).q);
+        *buf = board::dacdma::swap(opb1.sample().q);
 }
 
 template<> void handler<interrupt::DMA2_CH1>()
@@ -260,13 +293,8 @@ int main()
     hal::nvic<interrupt::DMA2_CH1>::enable();
 
     setup_cordic();
-    carriera.setup(220.);
-    carrierb.setup(330.);
-
-    envelopea.set_a(20e-3);
-    envelopea.set_d(0.5);
-    envelopeb.set_a(20e-3);
-    envelopeb.set_d(0.5);
+    opa1.setup();
+    opb1.setup();
 
     gui_t gui;
 

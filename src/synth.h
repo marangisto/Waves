@@ -48,6 +48,7 @@ public:
 
     ad_envelope_t(): m_state(stop) {}
 
+    __attribute__((always_inline))
     void trigger() { m_state = attack; }
 
     __attribute__((always_inline))
