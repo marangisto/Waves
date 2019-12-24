@@ -30,3 +30,5 @@ _autosave-*
 *.swp
 _build
 ~*xlsx
+*.o
+test
