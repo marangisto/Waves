@@ -1,17 +1,17 @@
 #pragma once
 
-#include <variant>
 #include <stdlib.h>
 #include <timer.h>
 #include <button.h>
 #include <vrefbuf.h>
 #include <gpio.h>
 #include <i2s.h>
-#include <fifo.h>
 #include <st7789.h>
 #include <draw.h>
 #include <analog.h>
 #include <dacdma.h>
+#include <fifo.h>
+#include "message.h"
 
 namespace board
 {
@@ -25,6 +25,7 @@ using namespace st7789;
 using namespace graphics;
 using namespace dacdma;
 using namespace analog;
+using namespace waves;
 
 typedef hal::timer::timer_t<7> aux_tim;
 

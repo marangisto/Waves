@@ -2,11 +2,13 @@
 
 #include <widget.h>
 #include <synth.h>
+#include <message.h>
 
 using namespace text;
 using namespace color;
 using namespace graphics;
 using namespace fontlib;
+using namespace waves;
 
 static char tmp_buf[256];
 
@@ -60,6 +62,8 @@ struct show_note
 
 static constexpr color_t normal_bg = slate_gray;
 static constexpr color_t normal_fg = yellow;
+static constexpr color_t normal_cursor = light_green;
+static constexpr color_t active_cursor = orange;
 
 template<typename DISPLAY>
 struct channel_t
@@ -109,16 +113,25 @@ struct channel_t
         frame.render();
     }
 
+    void update()
+    {
+        if (freq != last_freq)
+            note = last_freq = freq;
+    }
+
     notebox             note;
     floatbox            freq;
     intbox              cv1, cv2, cv3;
     vertical_t<DISPLAY> column;
     border_t<DISPLAY>   frame;
+    float               last_freq;
 };
 
 template<typename DISPLAY>
 struct gui_t
 {
+    enum state_t { navigating, editing };
+
     void setup()
     {
         channel_a.setup();
@@ -131,6 +144,9 @@ struct gui_t
         focus[1] = &channel_a.cv1;
         focus[2] = &channel_a.cv2;
         focus[3] = &channel_a.cv3;
+        pos = 0;
+        state = navigating;
+        focus[pos]->focus(normal_cursor);
     }
 
     void render()
@@ -138,32 +154,57 @@ struct gui_t
         q1.render();
     }
 
-    void navigate(int dir)
+    void handle_message(const message_t& m)
     {
         static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
 
-        focus[pos]->defocus();
-        if (dir > 0 && ++pos >= npos)
-            pos = 0;
-        if (dir < 0 && pos-- == 0)
-            pos = npos - 1;
-        focus[pos]->focus(light_green);
-    }
+        switch (m.index())
+        {
+        case button_press:
+            switch (std::get<button_press>(m))
+            {
+            case 0: // encoder button
+                state = state == navigating ? editing : navigating;
+                focus[pos]->focus(state == editing ? active_cursor : normal_cursor);
+                break;
+            case 1: // top-left
+                break;
+            case 2: // bottom-left
+                break;
+            case 3: // top-right
+                break;
+            case 4: // bottom-right
+                break;
+            default: ;  // unhandled button
+            }
+            break;
+        case encoder_delta:
+            if (state == navigating)
+            {
+                int dir = std::get<encoder_delta>(m);
 
-    void edit_state(bool b)
-    {
-        focus[pos]->focus(b ? orange_red : light_green);
-    }
-
-    void edit(int i)
-    {
-        focus[pos]->edit(i);
+                focus[pos]->defocus();
+                if (dir > 0 && ++pos >= npos)
+                    pos = 0;
+                if (dir < 0 && pos-- == 0)
+                    pos = npos - 1;
+                focus[pos]->focus(light_green);
+            }
+            else
+            {
+                focus[pos]->edit(std::get<encoder_delta>(m));
+                channel_a.update();
+            }
+            break;
+        default: ;      // unhandled message
+        }
     }
 
     channel_t<DISPLAY> channel_a, channel_b;
     horizontal_t<DISPLAY> q1;
 
     ifocus *focus[4];
-    uint8_t pos = 0;
+    uint8_t pos;
+    state_t state;
 };
 
