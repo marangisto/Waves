@@ -122,7 +122,6 @@ struct gui_t
     void handle_message(const message_t& m)
     {
         static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
-        bool exit_sub = false;
 
         switch (state)
         {

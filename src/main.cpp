@@ -1,7 +1,6 @@
 #include "board.h"
 #include "signal.h"
-#include "synth.h"
-#include "test.h"
+#include "gui.h"
 #include <math.h>
 #include <fixed.h>
 
@@ -197,38 +196,6 @@ enum focus_t { focus_freq, focus_ratio, focus_end };
 
 */
 
-void handle_message(gui_t & gui, const message_t& m)
-{
-    switch (m.index())
-    {
-    case button_press:
-        switch (std::get<button_press>(m))
-        {
-        case 0:
-            gui.encbtn = !gui.encbtn;
-            break;
-        case 1:
-            gui.btnsa = gui.btnsa + 1;
-            break;
-        case 2:
-            gui.btnsa = gui.btnsa - 1;
-            break;
-        case 3:
-            gui.btnsb = gui.btnsb + 1;
-            break;
-        case 4:
-            gui.btnsb = gui.btnsb - 1;
-            break;
-        default: ;  // unhandled button
-        }
-        break;
-    case encoder_delta:
-        gui.enc = gui.enc - std::get<encoder_delta>(m);
-        break;
-    default: ;      // unhandled message
-    }
-}
-
 template<> void handler<interrupt::EXTI15_10>()
 {
     bool ba = triga::interrupt_pending();
@@ -306,8 +273,9 @@ int main()
     opb1.setup();
     opb2.setup();
 
-    gui_t gui;
+    static gui_t<board::tft> gui;
 
+    gui.setup();
     gui.render();
 
     //uint16_t i = 0;
@@ -317,17 +285,21 @@ int main()
         message_t m;
 
         if (mq::get(m))
-            handle_message(gui, m);
+            gui.handle_message(m);
 
-        gui.cv1a = reada<0>();
-        gui.cv2a = reada<1>();
-        gui.cv3a = reada<2>();
-        gui.cv4a = reada<3>();
-        gui.cv1b = readb<0>();
-        gui.cv2b = readb<1>();
-        gui.cv3b = readb<2>();
-        //gui.cv4b = readb<3>();
-        gui.cv4b = dac_load;
+        gui.channel_a.freq = cv2freq(adc2cv(reada<0>()));
+        gui.channel_a.note = gui.channel_a.freq;
+        gui.channel_a.cv1 = reada<1>();
+        gui.channel_a.cv2 = reada<2>();
+        gui.channel_a.cv3 = reada<3>();
+
+        gui.channel_b.freq = cv2freq(adc2cv(readb<0>()));
+        gui.channel_b.note = gui.channel_b.freq;
+        gui.channel_b.cv1 = readb<1>();
+        gui.channel_b.cv2 = readb<2>();
+        gui.channel_b.cv3 = readb<3>();
+ 
+        //gui.cv4b = dac_load;
 
         sys_tick::delay_ms(1);
     }

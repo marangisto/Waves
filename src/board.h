@@ -66,8 +66,6 @@ typedef output_t<PB12> mem_cs;
 typedef output_t<PB13> mem_sck;
 
 // event message queue
-enum message_tag_t { button_press, encoder_delta };
-typedef std::variant<uint8_t, int16_t> message_t;
 typedef fifo_t<message_t, 0, 8> mq;
 
 // buttons decoder (corrsponding to mid-points on the adc readings)

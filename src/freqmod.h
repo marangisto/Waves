@@ -121,8 +121,6 @@ struct freqmod_ui_t
 
     bool handle_message(const message_t& m)
     {
-        static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
-
         switch (m.index())
         {
         case button_press:
