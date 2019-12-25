@@ -33,19 +33,19 @@ struct channel_t
         const fontlib::font_t& font = fontlib::cmunvt_28;
         const fontlib::font_t& large = fontlib::cmunssdc_32;
 
-        prog.setup(font, normal_fg, normal_bg, pg_freqmod);
         note.setup(large, dark_fg, dark_bg, 440.0f, quiet);
         freq.setup(font, normal_fg, normal_bg, 440.000f, quiet);
         cv1.setup(font, normal_fg, normal_bg, 0, quiet);
         cv2.setup(font, normal_fg, normal_bg, 0, quiet);
         cv3.setup(font, normal_fg, normal_bg, 0, quiet);
+        prog.setup(font, normal_fg, normal_bg, pg_freqmod);
         column.setup();
-        column.append(&prog);
         column.append(&note);
         column.append(&freq);
         column.append(&cv1);
         column.append(&cv2);
         column.append(&cv3);
+        column.append(&prog);
         frame.setup(&column, dim_gray);
         freqmod_ui.setup();
     }
@@ -73,10 +73,10 @@ struct channel_t
         }
     }
 
-    progbox                 prog;
     notebox                 note;
     floatbox                freq;
     intbox                  cv1, cv2, cv3;
+    progbox                 prog;
     vertical_t<DISPLAY>     column;
     border_t<DISPLAY>       frame;
     float                   last_freq;
