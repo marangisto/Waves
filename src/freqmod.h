@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list.h>
+
 template<typename DISPLAY>
 struct opfields_t
 {
@@ -30,6 +32,17 @@ struct opfields_t
         frame.render();
     }
 
+    list<ifocus*> navigation()
+    {
+        list<ifocus*> l;
+
+        l.push_back(&ratio);
+        l.push_back(&index);
+        l.push_back(&attack);
+        l.push_back(&decay);
+        return l;
+    }
+
     intlabel            opno;
     floatbox            ratio;
     floatbox            index;
@@ -54,10 +67,13 @@ struct freqmod_ui_t
         {
             ops[i].setup(i);
             panel.append(&ops[i].frame);
+            navigation.splice(navigation.end(), ops[i].navigation());
         }
-
         panel.constrain(10, 240, 10, 240); // fixme: what about zero min?
         panel.layout(0, 0);
+
+        focus = navigation.begin();
+        (*focus)->focus(normal_cursor);
     }
 
     void render()
@@ -76,7 +92,7 @@ struct freqmod_ui_t
             {
             case 0: // encoder button
                 state = state == navigating ? editing : navigating;
-                focus[pos]->focus(state == editing ? active_cursor : normal_cursor);
+                (*focus)->focus(state == editing ? active_cursor : normal_cursor);
                 break;
             case 1: // top-left
                 return false;           // exit window
@@ -94,17 +110,15 @@ struct freqmod_ui_t
             {
                 int dir = std::get<encoder_delta>(m);
 
-                focus[pos]->defocus();
-                if (dir > 0 && ++pos >= npos)
-                    pos = 0;
-                if (dir < 0 && pos-- == 0)
-                    pos = npos - 1;
-                focus[pos]->focus(light_green);
+                (*focus)->defocus();
+                if (dir > 0 && ++focus == navigation.end())
+                    focus = navigation.begin();
+                else if (dir < 0 && --focus == navigation.end())
+                    --focus;
+                (*focus)->focus(light_green);
             }
             else
-            {
-                focus[pos]->edit(std::get<encoder_delta>(m));
-            }
+                (*focus)->edit(std::get<encoder_delta>(m));
             break;
         default: ;      // unhandled message
         }
@@ -114,8 +128,8 @@ struct freqmod_ui_t
 
     opfields_t<DISPLAY>     ops[num_ops];
     horizontal_t<DISPLAY>   panel;
-    ifocus                  *focus[2];
-    uint8_t                 pos;
+    list<ifocus*>           navigation;
+    list_iterator<ifocus*>  focus;
     state_t                 state;
 };
 
