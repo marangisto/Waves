@@ -12,7 +12,7 @@ struct channel_t
     typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1> > floatbox;
     typedef valuebox_t<DISPLAY, show_note> notebox;
 
-    void setup()
+    void setup(const bool *quiet)
     {
         //const fontlib::font_t& font = fontlib::cmunbi_28.cpp
         //const fontlib::font_t& font = fontlib::cmunbtl_28;
@@ -34,11 +34,11 @@ struct channel_t
         const fontlib::font_t& large = fontlib::cmunssdc_32;
 
         prog.setup(font, normal_fg, normal_bg, pg_freqmod);
-        note.setup(large, dark_fg, dark_bg, 440.0f);
-        freq.setup(font, normal_fg, normal_bg, 440.000f);
-        cv1.setup(font, normal_fg, normal_bg, 0);
-        cv2.setup(font, normal_fg, normal_bg, 0);
-        cv3.setup(font, normal_fg, normal_bg, 0);
+        note.setup(large, dark_fg, dark_bg, 440.0f, quiet);
+        freq.setup(font, normal_fg, normal_bg, 440.000f, quiet);
+        cv1.setup(font, normal_fg, normal_bg, 0, quiet);
+        cv2.setup(font, normal_fg, normal_bg, 0, quiet);
+        cv3.setup(font, normal_fg, normal_bg, 0, quiet);
         column.setup();
         column.append(&prog);
         column.append(&note);
@@ -53,12 +53,6 @@ struct channel_t
     void render()
     {
         frame.render();
-    }
-
-    void update()
-    {
-        if (freq != last_freq)
-            note = last_freq = freq;
     }
 
     void prog_render()
@@ -96,8 +90,8 @@ struct gui_t
 
     void setup()
     {
-        channel_a.setup();
-        channel_b.setup();
+        channel_a.setup(&quiet);
+        channel_b.setup(&quiet);
         panel.append(&channel_a.frame);
         panel.append(&channel_b.frame);
         panel.constrain(10, 240, 10, 240); // fixme: what about zero min?
@@ -106,16 +100,18 @@ struct gui_t
         focus[1] = &channel_b.prog;
         pos = 0;
         state = navigating;
+        quiet = false;
         focus[pos]->focus(normal_cursor);
     }
 
     void render()
     {
+        DISPLAY::clear();
         switch (state)
         {
-            case prog_a: channel_a.prog_render(); break;
-            case prog_b: channel_b.prog_render(); break;
-            default: panel.render();
+            case prog_a: quiet = true; channel_a.prog_render(); break;
+            case prog_b: quiet = true; channel_b.prog_render(); break;
+            default: quiet = false; panel.render();
         }
     }
 
@@ -129,6 +125,7 @@ struct gui_t
                 if (!channel_a.prog_handle_message(m))
                 {
                     state = navigating;
+                    quiet = false;
                     panel.render();
                 }
                 return;
@@ -136,6 +133,7 @@ struct gui_t
                 if (!channel_b.prog_handle_message(m))
                 {
                     state = navigating;
+                    quiet = false;
                     panel.render();
                 }
                 return;
@@ -177,10 +175,7 @@ struct gui_t
                 focus[pos]->focus(light_green);
             }
             else
-            {
                 focus[pos]->edit(std::get<encoder_delta>(m));
-                channel_a.update();     // FIXME: remove this!
-            }
             break;
         default: ;      // unhandled message
         }
@@ -191,5 +186,6 @@ struct gui_t
     ifocus                  *focus[2];
     uint8_t                 pos;
     state_t                 state;
+    bool                    quiet;
 };
 
