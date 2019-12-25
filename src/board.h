@@ -164,7 +164,7 @@ template<> void handler<interrupt::TIM7>()
 
     if (c != encoder_last_count)
     {
-        mq::put(m.emplace<encoder_delta>(c - encoder_last_count));
+        mq::put(m.emplace<encoder_delta>(encoder_last_count - c));
         encoder_last_count = c;
     }
 }
