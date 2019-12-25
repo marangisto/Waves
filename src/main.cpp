@@ -254,6 +254,8 @@ template<> void handler<interrupt::DMA2_CH1>()
 
 int main()
 {
+    static gui_t<board::tft> gui;
+
     dac_tim::setup(170, 0xffff);
 
     board::dacdma::set_left_gen(fa);
@@ -267,18 +269,14 @@ int main()
     hal::nvic<interrupt::EXTI15_10>::enable();
     hal::nvic<interrupt::DMA2_CH1>::enable();
 
+    gui.setup();
+    gui.render();
+
     setup_cordic();
     opa1.setup();
     opa2.setup();
     opb1.setup();
     opb2.setup();
-
-    static gui_t<board::tft> gui;
-
-    gui.setup();
-    gui.render();
-
-    //uint16_t i = 0;
 
     for (;;)
     {
