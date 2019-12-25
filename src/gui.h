@@ -1,6 +1,7 @@
 #pragma once
 
 #include <widget.h>
+#include <synth.h>
 
 using namespace text;
 using namespace color;
@@ -39,6 +40,23 @@ struct edit_float
     static void edit(volatile float& x, int i) { x += static_cast<float>(i) / DIVISOR; }
 };
 
+struct show_note
+{
+    typedef float T;
+    static const char *show(T x)
+    {
+        using namespace synth;
+
+        float m = freq2midi(x);
+        uint8_t n = midino(m), o;
+        const char *s = note_octave(n, o);
+        float f = midi2freq(n);
+        int c = static_cast<int>(cents(f, x));
+
+        sprintf(tmp_buf, "%s%d %s%d", s, o, c > 0 ? "+" : "", c);
+        return tmp_buf;
+    }
+};
 
 static constexpr color_t normal_bg = slate_gray;
 static constexpr color_t normal_fg = yellow;
@@ -46,8 +64,10 @@ static constexpr color_t normal_fg = yellow;
 template<typename DISPLAY>
 struct channel_t
 {
+    typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
-    typedef valuebox_t<DISPLAY, show_float<2>, edit_float<25> > floatbox;
+    typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1> > floatbox;
+    typedef valuebox_t<DISPLAY, show_note> notebox;
 
     void setup()
     {
@@ -60,20 +80,23 @@ struct channel_t
         //const fontlib::font_t& font = fontlib::cmunsi_28;
         //const fontlib::font_t& font = fontlib::cmunso_28;
         //const fontlib::font_t& font = fontlib::cmunss_28;
-        //const fontlib::font_t& font = fontlib:: cmunssdc_28;
-        const fontlib::font_t& font = fontlib::cmunsx_28;
+        //const fontlib::font_t& font = fontlib::cmunssdc_28;
+        //const fontlib::font_t& font = fontlib::cmunsx_28;
         //const fontlib::font_t& font = fontlib::cmuntb_28;
         //const fontlib::font_t& font = fontlib::cmunti_28;
         //const fontlib::font_t& font = fontlib::cmuntt_28;
         //const fontlib::font_t& font = fontlib::cmuntx_28;
         //const fontlib::font_t& font = fontlib::cmunvi_28;
-        //const fontlib::font_t& font = fontlib::cmunvt_28;
+        const fontlib::font_t& font = fontlib::cmunvt_28;
+        const fontlib::font_t& large = fontlib::cmunssdc_32;
 
-        freq.setup(font, normal_fg, normal_bg, 440.000);
+        note.setup(large, orange, dark_slate_gray, 440.0f);
+        freq.setup(font, normal_fg, normal_bg, 440.000f);
         cv1.setup(font, normal_fg, normal_bg, 0);
         cv2.setup(font, normal_fg, normal_bg, 0);
         cv3.setup(font, normal_fg, normal_bg, 0);
         column.setup();
+        column.append(&note);
         column.append(&freq);
         column.append(&cv1);
         column.append(&cv2);
@@ -86,6 +109,7 @@ struct channel_t
         frame.render();
     }
 
+    notebox             note;
     floatbox            freq;
     intbox              cv1, cv2, cv3;
     vertical_t<DISPLAY> column;

@@ -39,7 +39,10 @@ void run()
             if (navigate)
                 gui.navigate(x);
             else
+            {
                 gui.edit(x);
+                gui.channel_a.note = gui.channel_a.freq;
+            }
             display::render();
             break;
         default: ;

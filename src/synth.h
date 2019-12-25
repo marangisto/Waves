@@ -2,11 +2,51 @@
 
 #include <algorithm>
 #include <fixed.h>
+#include <math.h>
 
 namespace synth
 {
 
 using namespace fixed;
+
+static inline float freq2midi(float f)
+{
+    static constexpr float k = 12.0f / log(2.0f);
+    static constexpr float z = 1.0f / 440.0f;
+
+    return k * log(f * z) + 69.0f;
+}
+
+static inline float midi2freq(float m)
+{
+    static constexpr float d = 1.0f / 12.0f;
+
+    return 440.0 * pow(2.0f, (m - 69.0f) * d);
+}
+
+static inline uint8_t midino(float m)
+{
+    return static_cast<uint8_t>(m + 0.5);
+}
+
+static const char *note_octave(uint8_t m, uint8_t& o)
+{
+    static const char *notes[] =
+        { "C", "C#", "D", "D#", "E", "F"
+        , "F#", "G", "G#", "A", "A#", "B"
+        };
+
+    m -= 12;
+    o = m / 12;
+    return notes[m % 12];
+}
+
+static inline float cents(float a, float b)
+{
+    static constexpr float k = 1200.0f / logf(2.0f);
+
+    return k * logf(b / a);
+}
 
 static inline float exp6(float x)
 {
@@ -16,18 +56,11 @@ static inline float exp6(float x)
     return x;
 }
 
-static inline float exp_response(float x)
-{
-    static constexpr float a = log(1e-3);
-
-    return exp6(a * (1. - x));
-}
-
 __attribute__((always_inline))
 static inline q31_t response(q31_t x)
 {
-    static constexpr q31_t k = q31_t(log(1e-3) / 64.0f);
-    static constexpr q31_t one = q31_t(1.0);
+    static constexpr q31_t k = q31_t(logf(1e-3f) / 64.0f);
+    static constexpr q31_t one = q31_t(1.0f);
 
     x = (x - one) * k;
     x = x + one;
