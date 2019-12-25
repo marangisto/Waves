@@ -60,6 +60,39 @@ struct show_note
     }
 };
 
+
+enum prog_t
+    { pg_freqmod
+    , pg_classic
+    , pg_noise
+    , pg_sentinel
+    };
+
+struct show_prog
+{
+    typedef prog_t T;
+    static const char *show(T x)
+    {
+        switch (x)
+        {
+        case pg_freqmod: return "FM";
+        case pg_classic: return "Classic";
+        case pg_noise: return "Noise";
+        default: return "???";
+        }
+    }
+};
+
+struct edit_prog
+{
+    static void edit(volatile prog_t& x, int i)
+    {
+        int j = static_cast<int>(x) + i;
+
+        x = static_cast<prog_t>(j < 0 ? pg_sentinel - 1 : (j < pg_sentinel ? j : 0));
+    }
+};
+
 static constexpr color_t normal_bg = slate_gray;
 static constexpr color_t normal_fg = yellow;
 static constexpr color_t normal_cursor = light_green;
@@ -69,6 +102,7 @@ template<typename DISPLAY>
 struct channel_t
 {
     typedef valuebox_t<DISPLAY, show_str> label;
+    typedef valuebox_t<DISPLAY, show_prog, edit_prog> progbox;
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
     typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1> > floatbox;
     typedef valuebox_t<DISPLAY, show_note> notebox;
@@ -94,12 +128,14 @@ struct channel_t
         const fontlib::font_t& font = fontlib::cmunvt_28;
         const fontlib::font_t& large = fontlib::cmunssdc_32;
 
+        prog.setup(font, normal_fg, normal_bg, pg_freqmod);
         note.setup(large, orange, dark_slate_gray, 440.0f);
         freq.setup(font, normal_fg, normal_bg, 440.000f);
         cv1.setup(font, normal_fg, normal_bg, 0);
         cv2.setup(font, normal_fg, normal_bg, 0);
         cv3.setup(font, normal_fg, normal_bg, 0);
         column.setup();
+        column.append(&prog);
         column.append(&note);
         column.append(&freq);
         column.append(&cv1);
@@ -119,6 +155,7 @@ struct channel_t
             note = last_freq = freq;
     }
 
+    progbox             prog;
     notebox             note;
     floatbox            freq;
     intbox              cv1, cv2, cv3;
@@ -136,14 +173,12 @@ struct gui_t
     {
         channel_a.setup();
         channel_b.setup();
-        q1.append(&channel_a.frame);
-        q1.append(&channel_b.frame);
-        q1.constrain(10, 240, 10, 240); // fixme: what about zero min?
-        q1.layout(0, 0);
-        focus[0] = &channel_a.freq;
-        focus[1] = &channel_a.cv1;
-        focus[2] = &channel_a.cv2;
-        focus[3] = &channel_a.cv3;
+        panel.append(&channel_a.frame);
+        panel.append(&channel_b.frame);
+        panel.constrain(10, 240, 10, 240); // fixme: what about zero min?
+        panel.layout(0, 0);
+        focus[0] = &channel_a.prog;
+        focus[1] = &channel_b.prog;
         pos = 0;
         state = navigating;
         focus[pos]->focus(normal_cursor);
@@ -151,7 +186,7 @@ struct gui_t
 
     void render()
     {
-        q1.render();
+        panel.render();
     }
 
     void handle_message(const message_t& m)
@@ -200,11 +235,10 @@ struct gui_t
         }
     }
 
-    channel_t<DISPLAY> channel_a, channel_b;
-    horizontal_t<DISPLAY> q1;
-
-    ifocus *focus[4];
-    uint8_t pos;
-    state_t state;
+    channel_t<DISPLAY>      channel_a, channel_b;
+    horizontal_t<DISPLAY>   panel;
+    ifocus                  *focus[2];
+    uint8_t                 pos;
+    state_t                 state;
 };
 
