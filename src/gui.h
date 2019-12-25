@@ -1,102 +1,7 @@
 #pragma once
 
-#include <widget.h>
-#include <synth.h>
-#include <message.h>
-
-using namespace text;
-using namespace color;
-using namespace graphics;
-using namespace fontlib;
-using namespace waves;
-
-static char tmp_buf[256];
-
-struct show_str
-{
-    typedef const char *T;
-    static const char *show(T x) { return x; }
-};
-
-struct show_int
-{
-    typedef int T;
-    static const char *show(T x) { sprintf(tmp_buf, "%d", x); return tmp_buf; }
-};
-
-struct edit_int
-{
-    static void edit(volatile int& x, int i) { x += i; }
-};
-
-template<int DECIMALS>
-struct show_float
-{
-    typedef float T;
-    static const char *show(T x) { sprintf(tmp_buf, "%.*f", DECIMALS, x); return tmp_buf; }
-};
-
-template<int DIVISOR>
-struct edit_float
-{
-    static void edit(volatile float& x, int i) { x += static_cast<float>(i) / DIVISOR; }
-};
-
-struct show_note
-{
-    typedef float T;
-    static const char *show(T x)
-    {
-        using namespace synth;
-
-        float m = freq2midi(x);
-        uint8_t n = midino(m), o;
-        const char *s = note_octave(n, o);
-        float f = midi2freq(n);
-        int c = static_cast<int>(cents(f, x));
-
-        sprintf(tmp_buf, "%s%d %s%d", s, o, c > 0 ? "+" : "", c);
-        return tmp_buf;
-    }
-};
-
-
-enum prog_t
-    { pg_freqmod
-    , pg_classic
-    , pg_noise
-    , pg_sentinel
-    };
-
-struct show_prog
-{
-    typedef prog_t T;
-    static const char *show(T x)
-    {
-        switch (x)
-        {
-        case pg_freqmod: return "FM";
-        case pg_classic: return "Classic";
-        case pg_noise: return "Noise";
-        default: return "???";
-        }
-    }
-};
-
-struct edit_prog
-{
-    static void edit(volatile prog_t& x, int i)
-    {
-        int j = static_cast<int>(x) + i;
-
-        x = static_cast<prog_t>(j < 0 ? pg_sentinel - 1 : (j < pg_sentinel ? j : 0));
-    }
-};
-
-static constexpr color_t normal_bg = slate_gray;
-static constexpr color_t normal_fg = yellow;
-static constexpr color_t normal_cursor = light_green;
-static constexpr color_t active_cursor = orange;
+#include "utils.h"
+#include "freqmod.h"
 
 template<typename DISPLAY>
 struct channel_t
@@ -142,6 +47,7 @@ struct channel_t
         column.append(&cv2);
         column.append(&cv3);
         frame.setup(&column, dim_gray);
+        freqmod_ui.setup();
     }
 
     void render()
@@ -155,19 +61,38 @@ struct channel_t
             note = last_freq = freq;
     }
 
-    progbox             prog;
-    notebox             note;
-    floatbox            freq;
-    intbox              cv1, cv2, cv3;
-    vertical_t<DISPLAY> column;
-    border_t<DISPLAY>   frame;
-    float               last_freq;
+    void prog_render()
+    {
+        switch (prog)
+        {
+            case pg_freqmod: freqmod_ui.render(); break;
+            default: ;
+        }
+    }
+
+    void prog_handle_message(const message_t& m)
+    {
+        switch (prog)
+        {
+            case pg_freqmod: freqmod_ui.handle_message(m); return;
+            default: ;
+        }
+    }
+
+    progbox                 prog;
+    notebox                 note;
+    floatbox                freq;
+    intbox                  cv1, cv2, cv3;
+    vertical_t<DISPLAY>     column;
+    border_t<DISPLAY>       frame;
+    float                   last_freq;
+    freqmod_ui_t<DISPLAY>   freqmod_ui;
 };
 
 template<typename DISPLAY>
 struct gui_t
 {
-    enum state_t { navigating, editing };
+    enum state_t { navigating, editing, prog_a, prog_b };
 
     void setup()
     {
@@ -186,12 +111,24 @@ struct gui_t
 
     void render()
     {
-        panel.render();
+        switch (state)
+        {
+            case prog_a: channel_a.prog_render(); break;
+            case prog_b: channel_b.prog_render(); break;
+            default: panel.render();
+        }
     }
 
     void handle_message(const message_t& m)
     {
         static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
+
+        switch (state)
+        {
+            case prog_a: channel_a.prog_handle_message(m); return;
+            case prog_b: channel_b.prog_handle_message(m); return;
+            default: ;
+        }
 
         switch (m.index())
         {
@@ -203,6 +140,8 @@ struct gui_t
                 focus[pos]->focus(state == editing ? active_cursor : normal_cursor);
                 break;
             case 1: // top-left
+                state = prog_a;
+                render();
                 break;
             case 2: // bottom-left
                 break;
@@ -228,7 +167,7 @@ struct gui_t
             else
             {
                 focus[pos]->edit(std::get<encoder_delta>(m));
-                channel_a.update();
+                channel_a.update();     // FIXME: remove this!
             }
             break;
         default: ;      // unhandled message
