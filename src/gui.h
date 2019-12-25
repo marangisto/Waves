@@ -34,7 +34,7 @@ struct channel_t
         const fontlib::font_t& large = fontlib::cmunssdc_32;
 
         prog.setup(font, normal_fg, normal_bg, pg_freqmod);
-        note.setup(large, orange, dark_slate_gray, 440.0f);
+        note.setup(large, dark_fg, dark_bg, 440.0f);
         freq.setup(font, normal_fg, normal_bg, 440.000f);
         cv1.setup(font, normal_fg, normal_bg, 0);
         cv2.setup(font, normal_fg, normal_bg, 0);
@@ -70,12 +70,12 @@ struct channel_t
         }
     }
 
-    void prog_handle_message(const message_t& m)
+    bool prog_handle_message(const message_t& m)
     {
         switch (prog)
         {
-            case pg_freqmod: freqmod_ui.handle_message(m); return;
-            default: ;
+            case pg_freqmod: return freqmod_ui.handle_message(m);
+            default: return false;
         }
     }
 
@@ -122,11 +122,24 @@ struct gui_t
     void handle_message(const message_t& m)
     {
         static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
+        bool exit_sub = false;
 
         switch (state)
         {
-            case prog_a: channel_a.prog_handle_message(m); return;
-            case prog_b: channel_b.prog_handle_message(m); return;
+            case prog_a:
+                if (!channel_a.prog_handle_message(m))
+                {
+                    state = navigating;
+                    panel.render();
+                }
+                return;
+            case prog_b:
+                if (!channel_b.prog_handle_message(m))
+                {
+                    state = navigating;
+                    panel.render();
+                }
+                return;
             default: ;
         }
 
@@ -140,7 +153,7 @@ struct gui_t
                 focus[pos]->focus(state == editing ? active_cursor : normal_cursor);
                 break;
             case 1: // top-left
-                state = prog_a;
+                state = pos == 0 ? prog_a : prog_b;
                 render();
                 break;
             case 2: // bottom-left

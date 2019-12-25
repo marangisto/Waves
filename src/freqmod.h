@@ -5,7 +5,6 @@
 template<typename DISPLAY>
 struct opfields_t
 {
-    typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_int> intlabel;
     typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1> > floatbox;
 
@@ -13,7 +12,7 @@ struct opfields_t
     {
         const fontlib::font_t& font = fontlib::cmunvt_28;
 
-        opno.setup(font, normal_fg, normal_bg, i);
+        opno.setup(font, dark_fg, dark_bg, i);
         ratio.setup(font, normal_fg, normal_bg, 1.0f);
         index.setup(font, normal_fg, normal_bg, 1.0f);
         attack.setup(font, normal_fg, normal_bg, 1e-3f);
@@ -53,6 +52,43 @@ struct opfields_t
 };
 
 template<typename DISPLAY>
+struct oplabels_t
+{
+    typedef valuebox_t<DISPLAY, show_str> label;
+
+    void setup()
+    {
+        const fontlib::font_t& font = fontlib::cmunvt_28;
+
+        opno.setup(font, dark_fg, dark_bg, "op no");
+        ratio.setup(font, normal_fg, normal_bg, "ratio");
+        index.setup(font, normal_fg, normal_bg, "index");
+        attack.setup(font, normal_fg, normal_bg, "attack");
+        decay.setup(font, normal_fg, normal_bg, "decay");
+        column.setup();
+        column.append(&opno);
+        column.append(&ratio);
+        column.append(&index);
+        column.append(&attack);
+        column.append(&decay);
+        frame.setup(&column, dim_gray);
+    }
+
+    void render()
+    {
+        frame.render();
+    }
+
+    label            opno;
+    label            ratio;
+    label            index;
+    label            attack;
+    label            decay;
+    vertical_t<DISPLAY> column;
+    border_t<DISPLAY>   frame;
+};
+
+template<typename DISPLAY>
 struct freqmod_ui_t
 {
     enum state_t { navigating, editing };
@@ -62,6 +98,8 @@ struct freqmod_ui_t
     void setup()
     {
         panel.setup();
+        labels.setup();
+        panel.append(&labels.frame);
 
         for (uint8_t i = 0; i < num_ops; ++i)
         {
@@ -123,9 +161,10 @@ struct freqmod_ui_t
         default: ;      // unhandled message
         }
 
-        return true;    // take more messages
+        return true;   // take more messages
     }
 
+    oplabels_t<DISPLAY>     labels;
     opfields_t<DISPLAY>     ops[num_ops];
     horizontal_t<DISPLAY>   panel;
     list<ifocus*>           navigation;
