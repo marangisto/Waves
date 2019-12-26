@@ -12,7 +12,7 @@ using namespace fixed;
 
 typedef hal::timer::timer_t<2> dac_tim;
 
-static volatile uint32_t dac_load = 0;
+static volatile float dac_load = 0.0f;
 
 static const uint32_t SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
 
@@ -127,7 +127,7 @@ template<> void handler<interrupt::DMA2_CH1>()
     board::dacdma::handle_interrupt();
 
     if (total_count > 0)
-        dac_load = (100 * dac_tim::count()) / total_count;
+        dac_load = static_cast<float>(dac_tim::count()) / total_count;
 }
 
 int main()
@@ -177,7 +177,9 @@ int main()
         gui.channel_b.cv2 = readb<2>();
         gui.channel_b.cv3 = readb<3>();
  
-        //gui.cv4b = dac_load;
+        float load = dac_load;  // capture volatile value
+
+        gui.load = load;
 
         sys_tick::delay_ms(1);
     }

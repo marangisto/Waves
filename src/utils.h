@@ -42,6 +42,13 @@ struct edit_float
     static void edit(volatile float& x, int i) { x += static_cast<float>(i) / DIVISOR; }
 };
 
+template<int DECIMALS>
+struct show_percent
+{
+    typedef float T;
+    static const char *show(T x) { sprintf(tmp_buf, "%.*f%%", DECIMALS, x * 100.0f); return tmp_buf; }
+};
+
 struct show_note
 {
     typedef float T;

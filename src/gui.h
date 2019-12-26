@@ -86,15 +86,23 @@ struct channel_t
 template<typename DISPLAY>
 struct gui_t
 {
+    typedef valuebox_t<DISPLAY, show_percent<1> > pctbox;
     enum state_t { navigating, editing, prog_a, prog_b };
 
     void setup()
     {
+        const fontlib::font_t& font = fontlib::cmunvt_28;
+
         channel_a.setup(&quiet);
         channel_b.setup(&quiet);
-        panel.append(&channel_a.frame);
-        panel.append(&channel_b.frame);
-        panel.constrain(10, 240, 10, 240); // fixme: what about zero min?
+        load.setup(font, normal_fg, normal_bg, 0.0f, &quiet);
+        inner.setup();
+        inner.append(&channel_a.frame);
+        inner.append(&channel_b.frame);
+        panel.setup();
+        panel.append(&inner);
+        panel.append(&load);
+        panel.constrain(10, 240, 10, 480); // FIXME: LAYOUT HACK! & what about zero min?
         panel.layout(0, 0);
         focus[0] = &channel_a.prog;
         focus[1] = &channel_b.prog;
@@ -182,7 +190,9 @@ struct gui_t
     }
 
     channel_t<DISPLAY>      channel_a, channel_b;
-    horizontal_t<DISPLAY>   panel;
+    pctbox                  load;
+    horizontal_t<DISPLAY>   inner;
+    vertical_t<DISPLAY>     panel;
     ifocus                  *focus[2];
     uint8_t                 pos;
     state_t                 state;
