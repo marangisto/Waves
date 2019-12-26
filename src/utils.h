@@ -99,9 +99,11 @@ struct edit_prog
     }
 };
 
-static constexpr color_t normal_bg = slate_gray;
-static constexpr color_t dark_bg = dark_slate_gray;
+static constexpr color_t normal_bg = cornflower_blue;
 static constexpr color_t normal_fg = yellow;
+static constexpr color_t alternate_bg = color::tan;
+static constexpr color_t alternate_fg = black;
+static constexpr color_t dark_bg = dark_slate_gray;
 static constexpr color_t dark_fg = white;
 static constexpr color_t normal_cursor = light_green;
 static constexpr color_t active_cursor = orange;

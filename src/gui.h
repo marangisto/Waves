@@ -38,7 +38,7 @@ struct channel_t
         cv1.setup(font, normal_fg, normal_bg, 0, quiet);
         cv2.setup(font, normal_fg, normal_bg, 0, quiet);
         cv3.setup(font, normal_fg, normal_bg, 0, quiet);
-        prog.setup(font, normal_fg, normal_bg, pg_freqmod);
+        prog.setup(font, alternate_fg, alternate_bg, pg_freqmod);
         column.setup();
         column.append(&note);
         column.append(&freq);
@@ -95,7 +95,7 @@ struct gui_t
 
         channel_a.setup(&quiet);
         channel_b.setup(&quiet);
-        load.setup(font, normal_fg, normal_bg, 0.0f, &quiet);
+        load.setup(font, gold, dark_bg, 0.0f, &quiet);
         inner.setup();
         inner.append(&channel_a.frame);
         inner.append(&channel_b.frame);
