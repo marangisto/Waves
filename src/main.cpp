@@ -41,16 +41,25 @@ static inline float cv2freq(float cv)
 class operator_t
 {
 public:
-    void setup()
+    void setup
+        ( const volatile float *ratio
+        , const volatile float *index
+        , const volatile float *attack
+        , const volatile float *decay
+        )
     {
-        m_carrier.setup(220.);
-        m_envelope.set_a(20e-3);
-        m_envelope.set_d(0.5);
+        m_ratio = ratio;
+        m_index = index;
+        m_attack = attack;
+        m_decay = decay;
+        m_carrier.setup(440.0f);
+        m_envelope.set_a(*m_attack);
+        m_envelope.set_d(*m_decay);
     }
 
-    inline void control(float freq, float idx)
+    inline void update(float freq)
     {
-        m_carrier.control(freq, idx);
+        m_carrier.control(freq * *m_ratio, *m_index);
     }
 
     __attribute__((always_inline))
@@ -62,12 +71,18 @@ public:
     __attribute__((always_inline))
     void trigger()
     {
+        m_envelope.set_a(*m_attack * 0.01f);
+        m_envelope.set_d(*m_decay * 0.1f);
         m_envelope.trigger();
     }
 
 private:
     signal_generator_t<sine, SAMPLE_FREQ>   m_carrier;
     ad_envelope_t<SAMPLE_FREQ>              m_envelope;
+    const volatile float                    *m_ratio;
+    const volatile float                    *m_index;
+    const volatile float                    *m_attack;
+    const volatile float                    *m_decay;
 };
 
 
@@ -103,8 +118,8 @@ static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     float f = cv2freq(adc2cv(reada<0>()));
 
-    opa1.control(f, 3.0f);
-    opa2.control(f * 2.0f, 0.0f);
+    opa1.update(f);
+    opa2.update(f);
     for (uint16_t i = 0; i < n; ++i, buf += stride)
         *buf = board::dacdma::swap(opa1.sample(opa2.sample()).q);
 }
@@ -113,8 +128,8 @@ static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
     float f = cv2freq(adc2cv(readb<0>()));
 
-    opb1.control(f, 3.0f);
-    opb2.control(f * 5.0f, 0.0f);
+    opb1.update(f);
+    opb2.update(f);
     for (uint16_t i = 0; i < n; ++i, buf += stride)
         *buf = board::dacdma::swap(opb1.sample(opb2.sample()).q);
 }
@@ -151,10 +166,34 @@ int main()
     gui.render();
 
     setup_cordic();
-    opa1.setup();
-    opa2.setup();
-    opb1.setup();
-    opb2.setup();
+
+    opa1.setup
+        ( gui.channel_a.freqmod_ui.ops[0].ratio.ptr()
+        , gui.channel_a.freqmod_ui.ops[0].index.ptr()
+        , gui.channel_a.freqmod_ui.ops[0].attack.ptr()
+        , gui.channel_a.freqmod_ui.ops[0].decay.ptr()
+        );
+
+    opa2.setup
+        ( gui.channel_a.freqmod_ui.ops[1].ratio.ptr()
+        , gui.channel_a.freqmod_ui.ops[1].index.ptr()
+        , gui.channel_a.freqmod_ui.ops[1].attack.ptr()
+        , gui.channel_a.freqmod_ui.ops[1].decay.ptr()
+        );
+
+    opb1.setup
+        ( gui.channel_b.freqmod_ui.ops[0].ratio.ptr()
+        , gui.channel_b.freqmod_ui.ops[0].index.ptr()
+        , gui.channel_b.freqmod_ui.ops[0].attack.ptr()
+        , gui.channel_b.freqmod_ui.ops[0].decay.ptr()
+        );
+
+    opb2.setup
+        ( gui.channel_b.freqmod_ui.ops[1].ratio.ptr()
+        , gui.channel_b.freqmod_ui.ops[1].index.ptr()
+        , gui.channel_b.freqmod_ui.ops[1].attack.ptr()
+        , gui.channel_b.freqmod_ui.ops[1].decay.ptr()
+        );
 
     message_t m;
 
