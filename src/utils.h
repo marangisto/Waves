@@ -8,6 +8,7 @@ using namespace text;
 using namespace color;
 using namespace graphics;
 using namespace fontlib;
+using namespace synth;
 using namespace waves;
 
 static char tmp_buf[256];
@@ -67,6 +68,38 @@ struct show_note
     }
 };
 
+struct show_scale
+{
+    typedef scale_t T;
+    static const char *show(T x)
+    {
+        switch (x)
+        {
+        case unscaled:      return "-";
+        case chromatic:     return "Chromatic";
+        case octatonic:     return "Octatonic";
+        case heptatonic:    return "Heptatonic";
+        case hexatonic:     return "Hexatonic";
+        case pentatonic:    return "Pentatonic";
+        case tetratonic:    return "Tetratonic";
+        case tritonic:      return "Tritonic";
+        case ditonic:       return "Ditonic";
+        case monotonic:     return "Monotonic";
+        default:            return "???";
+        }
+    }
+};
+
+struct edit_scale
+{
+    static void edit(volatile scale_t& x, int i)
+    {
+        int j = static_cast<int>(x) + i;
+
+        x = static_cast<scale_t>(j < 0 ? scale_sentinel - 1 : (j < scale_sentinel ? j : 0));
+    }
+};
+
 enum prog_t
     { pg_freqmod
     , pg_classic
@@ -81,10 +114,10 @@ struct show_prog
     {
         switch (x)
         {
-        case pg_freqmod: return "FM";
-        case pg_classic: return "Classic";
-        case pg_noise: return "Noise";
-        default: return "???";
+        case pg_freqmod:    return "FM";
+        case pg_classic:    return "Classic";
+        case pg_noise:      return "Noise";
+        default:            return "???";
         }
     }
 };
@@ -99,9 +132,9 @@ struct edit_prog
     }
 };
 
-static constexpr color_t normal_bg = cornflower_blue;
+static constexpr color_t normal_bg = medium_sea_green;
 static constexpr color_t normal_fg = yellow;
-static constexpr color_t alternate_bg = color::tan;
+static constexpr color_t alternate_bg = khaki;
 static constexpr color_t alternate_fg = black;
 static constexpr color_t dark_bg = dark_slate_gray;
 static constexpr color_t dark_fg = white;

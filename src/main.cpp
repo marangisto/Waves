@@ -71,8 +71,8 @@ public:
     __attribute__((always_inline))
     void trigger()
     {
-        m_envelope.set_a(*m_attack * 0.01f);
-        m_envelope.set_d(*m_decay * 0.1f);
+        m_envelope.set_a(*m_attack * 0.01f);    // FIXME: curve control
+        m_envelope.set_d(*m_decay * 0.1f);      // FIXME: curve control
         m_envelope.trigger();
     }
 
@@ -85,6 +85,20 @@ private:
     const volatile float                    *m_decay;
 };
 
+class freqmod_t
+{
+public:
+    static constexpr uint8_t num_ops = 2;
+
+    inline void trigger()
+    {
+        for (uint8_t i = 0; i < num_ops; ++i)
+            m_op[i].trigger();
+    }
+
+private:
+    operator_t m_op[num_ops];
+};
 
 static operator_t opa1, opa2;
 static operator_t opb1, opb2;

@@ -7,10 +7,11 @@ template<typename DISPLAY>
 struct channel_t
 {
     typedef valuebox_t<DISPLAY, show_str> label;
+    typedef valuebox_t<DISPLAY, show_note> notebox;
     typedef valuebox_t<DISPLAY, show_prog, edit_prog> progbox;
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
-    typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1> > floatbox;
-    typedef valuebox_t<DISPLAY, show_note> notebox;
+    typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1000> > floatbox;
+    typedef valuebox_t<DISPLAY, show_scale, edit_scale> scalebox;
 
     void setup(const bool *quiet)
     {
@@ -34,11 +35,14 @@ struct channel_t
         const fontlib::font_t& large = fontlib::cmunssdc_32;
 
         note.setup(large, dark_fg, dark_bg, 440.0f, quiet);
-        freq.setup(font, normal_fg, normal_bg, 440.000f, quiet);
-        cv1.setup(font, normal_fg, normal_bg, 0, quiet);
-        cv2.setup(font, normal_fg, normal_bg, 0, quiet);
-        cv3.setup(font, normal_fg, normal_bg, 0, quiet);
-        prog.setup(font, alternate_fg, alternate_bg, pg_freqmod);
+        freq.setup(font, alternate_fg, alternate_bg, 440.000f, quiet);
+        cv1.setup(font, alternate_fg, alternate_bg, 0, quiet);
+        cv2.setup(font, alternate_fg, alternate_bg, 0, quiet);
+        cv3.setup(font, alternate_fg, alternate_bg, 0, quiet);
+        prog.setup(font, normal_fg, normal_bg, pg_freqmod);
+        scale.setup(font, normal_fg, normal_bg, unscaled);
+        transpose.setup(font, normal_fg, normal_bg, 0);
+        tuning.setup(font, normal_fg, normal_bg, 0.0f);
         column.setup();
         column.append(&note);
         column.append(&freq);
@@ -46,6 +50,9 @@ struct channel_t
         column.append(&cv2);
         column.append(&cv3);
         column.append(&prog);
+        column.append(&tuning);
+        column.append(&transpose);
+        column.append(&scale);
         frame.setup(&column, dim_gray);
         freqmod_ui.setup();
     }
@@ -77,6 +84,9 @@ struct channel_t
     floatbox                freq;
     intbox                  cv1, cv2, cv3;
     progbox                 prog;
+    scalebox                scale;
+    intbox                  transpose;
+    floatbox                tuning;
     vertical_t<DISPLAY>     column;
     border_t<DISPLAY>       frame;
     float                   last_freq;

@@ -9,6 +9,27 @@ namespace synth
 
 using namespace fixed;
 
+enum scale_t
+    { unscaled
+    , chromatic
+    , octatonic
+    , heptatonic
+    , hexatonic
+    , pentatonic
+    , tetratonic
+    , tritonic
+    , ditonic
+    , monotonic
+    , scale_sentinel
+    };
+
+static inline float cv2midi(float cv)
+{
+    static constexpr float k = 1.0f / 12.0f;
+
+    return cv * k + 69.0f;
+}
+
 static inline float freq2midi(float f)
 {
     static constexpr float k = 12.0f / log(2.0f);
@@ -47,6 +68,37 @@ static inline float cents(float a, float b)
 
     return k * logf(b / a);
 }
+
+class voct_t
+{
+public:
+    void setup
+    ( const volatile float *tuning
+    , const volatile int *transpose
+    , const volatile scale_t *scale
+    )
+    {
+        m_tuning = tuning;
+        m_transpose = transpose;
+        m_scale = scale;
+    }
+
+    float freq(float cv)
+    {
+        float m = cv2midi(cv + *m_tuning) + *m_transpose;
+
+        switch (*m_scale)
+        {
+            case chromatic: return midi2freq(midino(m));
+            default: return midi2freq(m);
+        }
+    }
+ 
+private:
+    const volatile float *m_tuning;
+    const volatile int *m_transpose;
+    const volatile scale_t *m_scale;
+};
 
 static inline float exp6(float x)
 {
