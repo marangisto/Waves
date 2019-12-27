@@ -14,9 +14,9 @@ struct opfields_t
 
         opno.setup(font, dark_fg, dark_bg, i);
         ratio.setup(font, normal_fg, normal_bg, 1.0f);
-        index.setup(font, normal_fg, normal_bg, 1.0f);
-        attack.setup(font, normal_fg, normal_bg, 1e-3f);
-        decay.setup(font, normal_fg, normal_bg, 1.0f);
+        index.setup(font, normal_fg, normal_bg, 2.0f);
+        attack.setup(font, normal_fg, normal_bg, 1.0f);
+        decay.setup(font, normal_fg, normal_bg, 8.0f);
         column.setup();
         column.append(&opno);
         column.append(&ratio);

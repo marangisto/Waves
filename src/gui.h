@@ -55,6 +55,7 @@ struct channel_t
         column.append(&transpose);
         column.append(&tuning);
         frame.setup(&column, dim_gray);
+        voct.setup(tuning.ptr(), transpose.ptr(), scale.ptr());
         freqmod_ui.setup();
     }
 
@@ -101,7 +102,7 @@ struct channel_t
     floatbox                tuning;
     vertical_t<DISPLAY>     column;
     border_t<DISPLAY>       frame;
-    float                   last_freq;
+    voct_t                  voct;
     freqmod_ui_t<DISPLAY>   freqmod_ui;
 };
 

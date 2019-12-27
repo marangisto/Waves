@@ -23,21 +23,6 @@ static inline float adc2cv(uint16_t adc)
     return (2745.67 - static_cast<float>(adc)) * voct_volt_per_adc;
 }
 
-static inline float cv2midi(float x)
-{
-    return 60 + x * 12.;
-}
-
-static inline float midi2freq(float m)
-{
-    return 440 * pow(2., (m-69.) / 12.);
-}
-
-static inline float cv2freq(float cv)
-{
-    return 440. * pow(2., cv - 9. / 12.);
-}
-
 class operator_t
 {
 public:
@@ -128,9 +113,12 @@ template<> void handler<interrupt::EXTI15_10>()
         trigb::clear_interrupt();
 }
 
+static gui_t<board::tft> *gui_ptr = 0;
+
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
-    float f = cv2freq(adc2cv(reada<0>()));
+    //float f = cv2freq(adc2cv(reada<0>()));
+    float f = gui_ptr->channel_a.voct.freq(adc2cv(reada<0>()));
 
     opa1.update(f);
     opa2.update(f);
@@ -140,7 +128,8 @@ static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
-    float f = cv2freq(adc2cv(readb<0>()));
+    //float f = cv2freq(adc2cv(readb<0>()));
+    float f = gui_ptr->channel_b.voct.freq(adc2cv(reada<0>()));
 
     opb1.update(f);
     opb2.update(f);
@@ -162,6 +151,8 @@ template<> void handler<interrupt::DMA2_CH1>()
 int main()
 {
     static gui_t<board::tft> gui;
+
+    gui_ptr = &gui;     // FIXME: not this!
 
     dac_tim::setup(170, 0xffff);
 
@@ -218,13 +209,13 @@ int main()
         if (mq::get(m))
             gui.handle_message(m);
 
-        gui.channel_a.freq = cv2freq(adc2cv(reada<0>()));
+        gui.channel_a.freq = gui.channel_a.voct.freq(adc2cv(reada<0>()));
         gui.channel_a.note = gui.channel_a.freq;
         gui.channel_a.cv1 = reada<1>();
         gui.channel_a.cv2 = reada<2>();
         gui.channel_a.cv3 = reada<3>();
 
-        gui.channel_b.freq = cv2freq(adc2cv(readb<0>()));
+        gui.channel_b.freq = gui.channel_b.voct.freq(adc2cv(readb<0>()));
         gui.channel_b.note = gui.channel_b.freq;
         gui.channel_b.cv1 = readb<1>();
         gui.channel_b.cv2 = readb<2>();

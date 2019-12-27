@@ -25,9 +25,7 @@ enum scale_t
 
 static inline float cv2midi(float cv)
 {
-    static constexpr float k = 1.0f / 12.0f;
-
-    return cv * k + 69.0f;
+    return 12.0 * cv + 69.0f;
 }
 
 static inline float freq2midi(float f)
@@ -73,10 +71,10 @@ class voct_t
 {
 public:
     void setup
-    ( const volatile float *tuning
-    , const volatile int *transpose
-    , const volatile scale_t *scale
-    )
+        ( const volatile float *tuning
+        , const volatile int *transpose
+        , const volatile scale_t *scale
+        )
     {
         m_tuning = tuning;
         m_transpose = transpose;
