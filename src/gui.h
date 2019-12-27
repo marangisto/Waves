@@ -41,7 +41,7 @@ struct channel_t
         cv2.setup(font, alternate_fg, alternate_bg, 0, quiet);
         cv3.setup(font, alternate_fg, alternate_bg, 0, quiet);
         prog.setup(font, normal_fg, normal_bg, pg_freqmod);
-        scale.setup(font, normal_fg, normal_bg, unscaled);
+        scale.setup(font, normal_fg, normal_bg, chromatic);
         transpose.setup(font, normal_fg, normal_bg, 0);
         tuning.setup(font, normal_fg, normal_bg, 0.0f);
         column.setup();

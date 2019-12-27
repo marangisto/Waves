@@ -117,7 +117,6 @@ static gui_t<board::tft> *gui_ptr = 0;
 
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
-    //float f = cv2freq(adc2cv(reada<0>()));
     float f = gui_ptr->channel_a.voct.freq(adc2cv(reada<0>()));
 
     opa1.update(f);
@@ -128,8 +127,7 @@ static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
-    //float f = cv2freq(adc2cv(readb<0>()));
-    float f = gui_ptr->channel_b.voct.freq(adc2cv(reada<0>()));
+    float f = gui_ptr->channel_b.voct.freq(adc2cv(readb<0>()));
 
     opb1.update(f);
     opb2.update(f);
