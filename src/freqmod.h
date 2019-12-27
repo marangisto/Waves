@@ -135,7 +135,7 @@ struct freqmod_ui_t
             case 2: // bottom-left
                 break;
             case 3: // top-right
-                break;
+                return false;           // exit window
             case 4: // bottom-right
                 break;
             default: ;  // unhandled button
@@ -151,7 +151,7 @@ struct freqmod_ui_t
                     focus = navigation.begin();
                 else if (dir < 0 && --focus == navigation.end())
                     --focus;
-                (*focus)->focus(light_green);
+                (*focus)->focus(normal_cursor);
             }
             else
                 (*focus)->edit(std::get<encoder_delta>(m));

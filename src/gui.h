@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list.h>
 #include "utils.h"
 #include "freqmod.h"
 
@@ -10,7 +11,7 @@ struct channel_t
     typedef valuebox_t<DISPLAY, show_note> notebox;
     typedef valuebox_t<DISPLAY, show_prog, edit_prog> progbox;
     typedef valuebox_t<DISPLAY, show_int, edit_int> intbox;
-    typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1000> > floatbox;
+    typedef valuebox_t<DISPLAY, show_float<3>, edit_float<1000> > floatbox;
     typedef valuebox_t<DISPLAY, show_scale, edit_scale> scalebox;
 
     void setup(const bool *quiet)
@@ -50,9 +51,9 @@ struct channel_t
         column.append(&cv2);
         column.append(&cv3);
         column.append(&prog);
-        column.append(&tuning);
-        column.append(&transpose);
         column.append(&scale);
+        column.append(&transpose);
+        column.append(&tuning);
         frame.setup(&column, dim_gray);
         freqmod_ui.setup();
     }
@@ -78,6 +79,17 @@ struct channel_t
             case pg_freqmod: return freqmod_ui.handle_message(m);
             default: return false;
         }
+    }
+
+    list<ifocus*> navigation()
+    {
+        list<ifocus*> l;
+
+        l.push_back(&prog);
+        l.push_back(&scale);
+        l.push_back(&transpose);
+        l.push_back(&tuning);
+        return l;
     }
 
     notebox                 note;
@@ -114,12 +126,11 @@ struct gui_t
         panel.append(&load);
         panel.constrain(10, 240, 10, 480); // FIXME: LAYOUT HACK! & what about zero min?
         panel.layout(0, 0);
-        focus[0] = &channel_a.prog;
-        focus[1] = &channel_b.prog;
-        pos = 0;
-        state = navigating;
+        navigation = channel_a.navigation();
+        navigation.splice(navigation.end(), channel_b.navigation());
+        focus = navigation.begin();
+        (*focus)->focus(normal_cursor);
         quiet = false;
-        focus[pos]->focus(normal_cursor);
     }
 
     void render()
@@ -135,8 +146,6 @@ struct gui_t
 
     void handle_message(const message_t& m)
     {
-        static constexpr uint8_t npos = sizeof(focus) / sizeof(*focus);
-
         switch (state)
         {
             case prog_a:
@@ -165,15 +174,17 @@ struct gui_t
             {
             case 0: // encoder button
                 state = state == navigating ? editing : navigating;
-                focus[pos]->focus(state == editing ? active_cursor : normal_cursor);
+                (*focus)->focus(state == editing ? active_cursor : normal_cursor);
                 break;
             case 1: // top-left
-                state = pos == 0 ? prog_a : prog_b;
+                state = prog_a;
                 render();
                 break;
             case 2: // bottom-left
                 break;
             case 3: // top-right
+                state = prog_b;
+                render();
                 break;
             case 4: // bottom-right
                 break;
@@ -185,15 +196,15 @@ struct gui_t
             {
                 int dir = std::get<encoder_delta>(m);
 
-                focus[pos]->defocus();
-                if (dir > 0 && ++pos >= npos)
-                    pos = 0;
-                if (dir < 0 && pos-- == 0)
-                    pos = npos - 1;
-                focus[pos]->focus(light_green);
+                (*focus)->defocus();
+                if (dir > 0 && ++focus == navigation.end())
+                    focus = navigation.begin();
+                else if (dir < 0 && --focus == navigation.end())
+                    --focus;
+                (*focus)->focus(normal_cursor);
             }
             else
-                focus[pos]->edit(std::get<encoder_delta>(m));
+                (*focus)->edit(std::get<encoder_delta>(m));
             break;
         default: ;      // unhandled message
         }
@@ -203,8 +214,8 @@ struct gui_t
     pctbox                  load;
     horizontal_t<DISPLAY>   inner;
     vertical_t<DISPLAY>     panel;
-    ifocus                  *focus[2];
-    uint8_t                 pos;
+    list<ifocus*>           navigation;
+    list_iterator<ifocus*>  focus;
     state_t                 state;
     bool                    quiet;
 };
