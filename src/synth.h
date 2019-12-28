@@ -67,6 +67,18 @@ static const char *note_octave(uint8_t m, uint8_t& o)
     return notes[m % 12];
 }
 
+static const int8_t shift_to_scale(uint16_t s, uint8_t m)
+{
+    uint16_t b = 1 << (m % 12);
+
+    for (uint8_t i = 0; i < 12; ++i)
+        if ((b >> i) & s)
+            return -i;
+        else if ((b << i) & s)
+            return i;
+    return 0;               // never reached?
+}
+
 static inline float cents(float a, float b)
 {
     static constexpr float k = 1200.0f / logf(2.0f);
@@ -92,9 +104,22 @@ public:
     {
         float m = cv2midi(cv + *m_tuning) + *m_transpose;
 
+        if (*m_scale == unscaled)
+            return midi2freq(m);
+
+        uint8_t n = midino(m);
+
         switch (*m_scale)
         {
-            case chromatic: return midi2freq(midino(m));
+            case chromatic:     return midi2freq(n);
+            case octatonic:     return midi2freq(n + shift_to_scale(0b101101101101, n));
+            case heptatonic:    return midi2freq(n + shift_to_scale(0b101010110101, n));
+            case hexatonic:     return midi2freq(n + shift_to_scale(0b010101010101, n));
+            case pentatonic:    return midi2freq(n + shift_to_scale(0b001010010101, n));
+            case tetratonic:    return midi2freq(n + shift_to_scale(0b001001001001, n));
+            case tritonic:      return midi2freq(n + shift_to_scale(0b000100010001, n));
+            case ditonic:       return midi2freq(n + shift_to_scale(0b000001000001, n));
+            case monotonic:     return midi2freq(n + shift_to_scale(0b000000000001, n));
             default: return midi2freq(m);
         }
     }
