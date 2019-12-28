@@ -19,9 +19,9 @@ struct show_waveform
         switch (x)
         {
         case wf_sine:       return "Sine";
-        case wf_triangle:   return "Triangle";
-        case wf_sawtooth:   return "Sawtooth";
-        case wf_square:     return "Square";
+        case wf_triangle:   return "Tri";
+        case wf_sawtooth:   return "Saw";
+        case wf_square:     return "Rect";
         default:            return "???";
         }
     }
@@ -42,6 +42,7 @@ struct oscillator_t
 {
     typedef valuebox_t<DISPLAY, show_int> intlabel;
     typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1> > floatbox;
+    typedef valuebox_t<DISPLAY, show_waveform, edit_waveform > wavebox;
 
     void setup(uint8_t i)
     {
@@ -85,9 +86,9 @@ struct oscillator_t
     }
 
     __attribute__((always_inline))
-    inline q31_t sample(q31_t mod = q31_t())
+    inline q31_t sample()
     {
-        return response(m_envelope.sample()) * m_carrier.sample(mod);
+        return response(m_envelope.sample()) * m_carrier.sample();
     }
 
     __attribute__((always_inline))
@@ -99,7 +100,7 @@ struct oscillator_t
     }
 
     intlabel                                m_opno;
-    floatbox                                m_waveform;
+    wavebox                                 m_waveform;
     floatbox                                m_ratio;
     floatbox                                m_attack;
     floatbox                                m_decay;

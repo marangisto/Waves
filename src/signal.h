@@ -23,7 +23,7 @@ public:
     }
 
     __attribute__((always_inline))
-    inline void control(float freq, float idx)
+    inline void control(float freq, float idx = 0.0f)
     {
         float k = 2.0f * freq / SAMPLE_FREQ;
 
@@ -32,28 +32,11 @@ public:
     }
 
     __attribute__((always_inline))
-    inline void control(float freq)
-    {
-        float k = 2.0f * freq / SAMPLE_FREQ;
-
-        m_dphi = q31_t(k);
-    }
-
-    __attribute__((always_inline))
-    inline q31_t sample(q31_t mod)
+    inline q31_t sample(q31_t mod = q31_t())
     {
         q31_t s = WAVEGEN::value(m_phi);            // generate signal value
 
         m_phi = m_phi + m_dphi + mod * m_idx;       // advance angle
-        return s;
-    }
-
-    __attribute__((always_inline))
-    inline q31_t sample()
-    {
-        q31_t s = WAVEGEN::value(m_phi);            // generate signal value
-
-        m_phi = m_phi + m_dphi;                     // advance angle
         return s;
     }
 
@@ -72,7 +55,6 @@ struct sine
         return q31_t(cordic_t::compute(phi.q));
     }
 };
-
 
 struct triangle
 {
