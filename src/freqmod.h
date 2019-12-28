@@ -4,7 +4,7 @@
 #include <list.h>
 
 template<typename DISPLAY>
-struct opfields_t
+struct operator_t
 {
     typedef valuebox_t<DISPLAY, show_int> intlabel;
     typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1> > floatbox;
@@ -13,41 +13,41 @@ struct opfields_t
     {
         const fontlib::font_t& font = fontlib::cmunvt_28;
 
-        opno.setup(font, dark_fg, dark_bg, i);
-        ratio.setup(font, normal_fg, normal_bg, 1.0f);
-        index.setup(font, normal_fg, normal_bg, 2.0f);
-        attack.setup(font, normal_fg, normal_bg, 1.0f);
-        decay.setup(font, normal_fg, normal_bg, 8.0f);
-        column.setup();
-        column.append(&opno);
-        column.append(&ratio);
-        column.append(&index);
-        column.append(&attack);
-        column.append(&decay);
-        frame.setup(&column, dim_gray);
+        m_opno.setup(font, dark_fg, dark_bg, i);
+        m_ratio.setup(font, normal_fg, normal_bg, 1.0f);
+        m_index.setup(font, normal_fg, normal_bg, 2.0f);
+        m_attack.setup(font, normal_fg, normal_bg, 1.0f);
+        m_decay.setup(font, normal_fg, normal_bg, 8.0f);
+        m_column.setup();
+        m_column.append(&m_opno);
+        m_column.append(&m_ratio);
+        m_column.append(&m_index);
+        m_column.append(&m_attack);
+        m_column.append(&m_decay);
+        m_frame.setup(&m_column, dim_gray);
         m_carrier.setup(440.0f);
     }
 
     void render()
     {
-        frame.render();
+        m_frame.render();
     }
 
     list<ifocus*> navigation()
     {
         list<ifocus*> l;
 
-        l.push_back(&ratio);
-        l.push_back(&index);
-        l.push_back(&attack);
-        l.push_back(&decay);
+        l.push_back(&m_ratio);
+        l.push_back(&m_index);
+        l.push_back(&m_attack);
+        l.push_back(&m_decay);
         return l;
     }
 
     __attribute__((always_inline))
     inline void update(float freq)
     {
-        m_carrier.control(freq * ratio, index);
+        m_carrier.control(freq * m_ratio, m_index);
     }
 
     __attribute__((always_inline))
@@ -59,18 +59,18 @@ struct opfields_t
     __attribute__((always_inline))
     inline void trigger()
     {
-        m_envelope.set_a(attack * 0.01f);    // FIXME: curve control
-        m_envelope.set_d(decay * 0.1f);      // FIXME: curve control
+        m_envelope.set_a(m_attack * 0.01f);    // FIXME: curve control
+        m_envelope.set_d(m_decay * 0.1f);      // FIXME: curve control
         m_envelope.trigger();
     }
 
-    intlabel            opno;
-    floatbox            ratio;
-    floatbox            index;
-    floatbox            attack;
-    floatbox            decay;
-    vertical_t<DISPLAY> column;
-    border_t<DISPLAY>   frame;
+    intlabel                                m_opno;
+    floatbox                                m_ratio;
+    floatbox                                m_index;
+    floatbox                                m_attack;
+    floatbox                                m_decay;
+    vertical_t<DISPLAY>                     m_column;
+    border_t<DISPLAY>                       m_frame;
     signal_generator_t<sine, SAMPLE_FREQ>   m_carrier;
     ad_envelope_t<SAMPLE_FREQ>              m_envelope;
 };
@@ -84,36 +84,36 @@ struct oplabels_t
     {
         const fontlib::font_t& font = fontlib::cmunvt_28;
 
-        opno.setup(font, dark_fg, dark_bg, "op no");
-        ratio.setup(font, normal_fg, normal_bg, "ratio");
-        index.setup(font, normal_fg, normal_bg, "index");
-        attack.setup(font, normal_fg, normal_bg, "attack");
-        decay.setup(font, normal_fg, normal_bg, "decay");
-        column.setup();
-        column.append(&opno);
-        column.append(&ratio);
-        column.append(&index);
-        column.append(&attack);
-        column.append(&decay);
-        frame.setup(&column, dim_gray);
+        m_opno.setup(font, dark_fg, dark_bg, "op no");
+        m_ratio.setup(font, normal_fg, normal_bg, "ratio");
+        m_index.setup(font, normal_fg, normal_bg, "index");
+        m_attack.setup(font, normal_fg, normal_bg, "attack");
+        m_decay.setup(font, normal_fg, normal_bg, "decay");
+        m_column.setup();
+        m_column.append(&m_opno);
+        m_column.append(&m_ratio);
+        m_column.append(&m_index);
+        m_column.append(&m_attack);
+        m_column.append(&m_decay);
+        m_frame.setup(&m_column, dim_gray);
     }
 
     void render()
     {
-        frame.render();
+        m_frame.render();
     }
 
-    label            opno;
-    label            ratio;
-    label            index;
-    label            attack;
-    label            decay;
-    vertical_t<DISPLAY> column;
-    border_t<DISPLAY>   frame;
+    label               m_opno;
+    label               m_ratio;
+    label               m_index;
+    label               m_attack;
+    label               m_decay;
+    vertical_t<DISPLAY> m_column;
+    border_t<DISPLAY>   m_frame;
 };
 
 template<typename DISPLAY>
-struct freqmod_ui_t: public imodel
+struct freqmod_t: public imodel
 {
     enum state_t { navigating, editing };
     static constexpr uint8_t num_ops = 2;
@@ -121,26 +121,26 @@ struct freqmod_ui_t: public imodel
 
     void setup()
     {
-        panel.setup();
-        labels.setup();
-        panel.append(&labels.frame);
+        m_panel.setup();
+        m_labels.setup();
+        m_panel.append(&m_labels.m_frame);
 
         for (uint8_t i = 0; i < num_ops; ++i)
         {
-            ops[i].setup(i);
-            panel.append(&ops[i].frame);
-            navigation.splice(navigation.end(), ops[i].navigation());
+            m_ops[i].setup(i);
+            m_panel.append(&m_ops[i].m_frame);
+            m_navigation.splice(m_navigation.end(), m_ops[i].navigation());
         }
-        panel.constrain(10, 240, 10, 240); // fixme: what about zero min?
-        panel.layout(0, 0);
+        m_panel.constrain(10, 240, 10, 240); // fixme: what about zero min?
+        m_panel.layout(0, 0);
 
-        focus = navigation.begin();
-        (*focus)->focus(normal_cursor);
+        m_focus = m_navigation.begin();
+        (*m_focus)->focus(normal_cursor);
     }
 
     void render()
     {
-        panel.render();
+        m_panel.render();
     }
 
     bool handle_message(const message_t& m)
@@ -151,8 +151,8 @@ struct freqmod_ui_t: public imodel
             switch (std::get<button_press>(m))
             {
             case 0: // encoder button
-                state = state == navigating ? editing : navigating;
-                (*focus)->focus(state == editing ? active_cursor : normal_cursor);
+                m_state = m_state == navigating ? editing : navigating;
+                (*m_focus)->focus(m_state == editing ? active_cursor : normal_cursor);
                 break;
             case 1: // top-left
                 return false;           // exit window
@@ -166,19 +166,19 @@ struct freqmod_ui_t: public imodel
             }
             break;
         case encoder_delta:
-            if (state == navigating)
+            if (m_state == navigating)
             {
                 int dir = std::get<encoder_delta>(m);
 
-                (*focus)->defocus();
-                if (dir > 0 && ++focus == navigation.end())
-                    focus = navigation.begin();
-                else if (dir < 0 && --focus == navigation.end())
-                    --focus;
-                (*focus)->focus(normal_cursor);
+                (*m_focus)->defocus();
+                if (dir > 0 && ++m_focus == m_navigation.end())
+                    m_focus = m_navigation.begin();
+                else if (dir < 0 && --m_focus == m_navigation.end())
+                    --m_focus;
+                (*m_focus)->focus(normal_cursor);
             }
             else
-                (*focus)->edit(std::get<encoder_delta>(m));
+                (*m_focus)->edit(std::get<encoder_delta>(m));
             break;
         default: ;      // unhandled message
         }
@@ -191,23 +191,23 @@ struct freqmod_ui_t: public imodel
     virtual void generate(ctrl_t& ctx, int32_t *buf, uint16_t n, uint8_t stride)
     {
         for (uint8_t i = 0; i < num_ops; ++i)
-            ops[i].update(ctx.freq);
+            m_ops[i].update(ctx.freq);
         for (uint16_t i = 0; i < n; ++i, buf += stride)
-            *buf = board::dacdma::swap(ops[0].sample(ops[1].sample()).q);
+            *buf = board::dacdma::swap(m_ops[0].sample(m_ops[1].sample()).q);
     }
 
     virtual void trigger(bool rise)
     {
         if (rise)
             for (uint8_t i = 0; i < num_ops; ++i)
-                ops[i].trigger();
+                m_ops[i].trigger();
     }
 
-    oplabels_t<DISPLAY>     labels;
-    opfields_t<DISPLAY>     ops[num_ops];
-    horizontal_t<DISPLAY>   panel;
-    list<ifocus*>           navigation;
-    list_iterator<ifocus*>  focus;
-    state_t                 state;
+    oplabels_t<DISPLAY>     m_labels;
+    operator_t<DISPLAY>     m_ops[num_ops];
+    horizontal_t<DISPLAY>   m_panel;
+    list<ifocus*>           m_navigation;
+    list_iterator<ifocus*>  m_focus;
+    state_t                 m_state;
 };
 

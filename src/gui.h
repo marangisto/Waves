@@ -35,50 +35,50 @@ struct channel_t: public imodel
         const fontlib::font_t& font = fontlib::cmunvt_28;
         const fontlib::font_t& large = fontlib::cmunssdc_32;
 
-        note.setup(large, dark_fg, dark_bg, 440.0f, quiet);
-        freq.setup(font, alternate_fg, alternate_bg, 440.000f, quiet);
-        cv1.setup(font, alternate_fg, alternate_bg, 0, quiet);
-        cv2.setup(font, alternate_fg, alternate_bg, 0, quiet);
-        cv3.setup(font, alternate_fg, alternate_bg, 0, quiet);
-        prog.setup(font, normal_fg, normal_bg, pg_freqmod);
-        scale.setup(font, normal_fg, normal_bg, chromatic);
-        transpose.setup(font, normal_fg, normal_bg, 0);
-        tuning.setup(font, normal_fg, normal_bg, 0.0f);
-        column.setup();
-        column.append(&note);
-        column.append(&freq);
-        column.append(&cv1);
-        column.append(&cv2);
-        column.append(&cv3);
-        column.append(&prog);
-        column.append(&scale);
-        column.append(&transpose);
-        column.append(&tuning);
-        frame.setup(&column, dim_gray);
-        voct.setup(tuning.ptr(), transpose.ptr(), scale.ptr());
-        model = &freqmod_ui;
-        freqmod_ui.setup();
+        m_note.setup(large, dark_fg, dark_bg, 440.0f, quiet);
+        m_freq.setup(font, alternate_fg, alternate_bg, 440.000f, quiet);
+        m_cv1.setup(font, alternate_fg, alternate_bg, 0, quiet);
+        m_cv2.setup(font, alternate_fg, alternate_bg, 0, quiet);
+        m_cv3.setup(font, alternate_fg, alternate_bg, 0, quiet);
+        m_prog.setup(font, normal_fg, normal_bg, pg_freqmod);
+        m_scale.setup(font, normal_fg, normal_bg, chromatic);
+        m_transpose.setup(font, normal_fg, normal_bg, 0);
+        m_tuning.setup(font, normal_fg, normal_bg, 0.0f);
+        m_column.setup();
+        m_column.append(&m_note);
+        m_column.append(&m_freq);
+        m_column.append(&m_cv1);
+        m_column.append(&m_cv2);
+        m_column.append(&m_cv3);
+        m_column.append(&m_prog);
+        m_column.append(&m_scale);
+        m_column.append(&m_transpose);
+        m_column.append(&m_tuning);
+        m_frame.setup(&m_column, dim_gray);
+        m_voct.setup(m_tuning.ptr(), m_transpose.ptr(), m_scale.ptr());
+        m_model = &m_freqmod;
+        m_freqmod.setup();
     }
 
     void render()
     {
-        frame.render();
+        m_frame.render();
     }
 
     void prog_render()
     {
-        switch (prog)
+        switch (m_prog)
         {
-            case pg_freqmod: freqmod_ui.render(); break;
+            case pg_freqmod: m_freqmod.render(); break;
             default: ;
         }
     }
 
     bool prog_handle_message(const message_t& m)
     {
-        switch (prog)
+        switch (m_prog)
         {
-            case pg_freqmod: return freqmod_ui.handle_message(m);
+            case pg_freqmod: return m_freqmod.handle_message(m);
             default: return false;
         }
     }
@@ -87,10 +87,10 @@ struct channel_t: public imodel
     {
         list<ifocus*> l;
 
-        l.push_back(&prog);
-        l.push_back(&scale);
-        l.push_back(&transpose);
-        l.push_back(&tuning);
+        l.push_back(&m_prog);
+        l.push_back(&m_scale);
+        l.push_back(&m_transpose);
+        l.push_back(&m_tuning);
         return l;
     }
 
@@ -98,27 +98,27 @@ struct channel_t: public imodel
 
     virtual void generate(ctrl_t& ctrl, int32_t *buf, uint16_t n, uint8_t stride)
     {
-        ctrl.freq = voct.freq(ctrl.freq);
-        model->generate(ctrl, buf, n, stride);
+        ctrl.freq = m_voct.freq(ctrl.freq);
+        m_model->generate(ctrl, buf, n, stride);
     }
 
     virtual void trigger(bool rise)
     {
-        model->trigger(rise);
+        m_model->trigger(rise);
     }
 
-    notebox                 note;
-    floatbox                freq;
-    intbox                  cv1, cv2, cv3;
-    progbox                 prog;
-    scalebox                scale;
-    intbox                  transpose;
-    floatbox                tuning;
-    vertical_t<DISPLAY>     column;
-    border_t<DISPLAY>       frame;
-    voct_t                  voct;
-    imodel                  *model;
-    freqmod_ui_t<DISPLAY>   freqmod_ui;
+    notebox                 m_note;
+    floatbox                m_freq;
+    intbox                  m_cv1, m_cv2, m_cv3;
+    progbox                 m_prog;
+    scalebox                m_scale;
+    intbox                  m_transpose;
+    floatbox                m_tuning;
+    vertical_t<DISPLAY>     m_column;
+    border_t<DISPLAY>       m_frame;
+    voct_t                  m_voct;
+    imodel                  *m_model;
+    freqmod_t<DISPLAY>      m_freqmod;
 };
 
 template<typename DISPLAY>
@@ -135,8 +135,8 @@ struct gui_t
         channel_b.setup(&quiet);
         load.setup(font, gold, dark_bg, 0.0f, &quiet);
         inner.setup();
-        inner.append(&channel_a.frame);
-        inner.append(&channel_b.frame);
+        inner.append(&channel_a.m_frame);
+        inner.append(&channel_b.m_frame);
         panel.setup();
         panel.append(&inner);
         panel.append(&load);

@@ -123,17 +123,17 @@ int main()
         if (mq::get(m))
             gui.handle_message(m);
 
-        gui.channel_a.freq = gui.channel_a.voct.freq(adc2cv(reada<0>()));
-        gui.channel_a.note = gui.channel_a.freq;
-        gui.channel_a.cv1 = reada<1>();
-        gui.channel_a.cv2 = reada<2>();
-        gui.channel_a.cv3 = reada<3>();
+        gui.channel_a.m_freq = gui.channel_a.m_voct.freq(adc2cv(reada<0>()));
+        gui.channel_a.m_note = gui.channel_a.m_freq;
+        gui.channel_a.m_cv1 = reada<1>();
+        gui.channel_a.m_cv2 = reada<2>();
+        gui.channel_a.m_cv3 = reada<3>();
 
-        gui.channel_b.freq = gui.channel_b.voct.freq(adc2cv(readb<0>()));
-        gui.channel_b.note = gui.channel_b.freq;
-        gui.channel_b.cv1 = readb<1>();
-        gui.channel_b.cv2 = readb<2>();
-        gui.channel_b.cv3 = readb<3>();
+        gui.channel_b.m_freq = gui.channel_b.m_voct.freq(adc2cv(readb<0>()));
+        gui.channel_b.m_note = gui.channel_b.m_freq;
+        gui.channel_b.m_cv1 = readb<1>();
+        gui.channel_b.m_cv2 = readb<2>();
+        gui.channel_b.m_cv3 = readb<3>();
 
         float load = dac_load;  // capture volatile value
 
