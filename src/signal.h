@@ -32,11 +32,28 @@ public:
     }
 
     __attribute__((always_inline))
-    inline q31_t sample(q31_t mod = q31_t())
+    inline void control(float freq)
+    {
+        float k = 2.0f * freq / SAMPLE_FREQ;
+
+        m_dphi = q31_t(k);
+    }
+
+    __attribute__((always_inline))
+    inline q31_t sample(q31_t mod)
     {
         q31_t s = WAVEGEN::value(m_phi);            // generate signal value
 
         m_phi = m_phi + m_dphi + mod * m_idx;       // advance angle
+        return s;
+    }
+
+    __attribute__((always_inline))
+    inline q31_t sample()
+    {
+        q31_t s = WAVEGEN::value(m_phi);            // generate signal value
+
+        m_phi = m_phi + m_dphi;                     // advance angle
         return s;
     }
 
