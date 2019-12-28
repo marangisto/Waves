@@ -159,12 +159,15 @@ template<uint32_t SAMPLE_FREQ>
 class ad_envelope_t
 {
 public:
-    enum state_t { stop, attack, decay };
+    enum state_t { stop, attack, decay, open };
 
     ad_envelope_t(): m_state(stop) {}
 
     __attribute__((always_inline))
-    void trigger() { m_state = attack; }
+    void trigger()
+    {
+        m_state = m_da.q == one.q && m_dd.q == one.q ? open : attack;
+    }
 
     __attribute__((always_inline))
     inline q31_t sample()
@@ -191,15 +194,20 @@ public:
             break;
         case stop:
             break;
+        case open:
+            m_y = q31_t(0.99f);
+            break;
         }
 
         return m_y;
     }
 
-    void set_a(float a) { m_da = a > 0.0f ? q31_t(1.0f / (a * SAMPLE_FREQ)) : q31_t::max_val; }
-    void set_d(float d) { m_dd = d > 0.0f ? q31_t(1.0f / (d * SAMPLE_FREQ)) : q31_t::max_val; }
+    void set_a(float a) { m_da = a > 0.0f ? q31_t(1.0f / (a * SAMPLE_FREQ)) : one; }
+    void set_d(float d) { m_dd = d > 0.0f ? q31_t(1.0f / (d * SAMPLE_FREQ)) : one; }
 
 private:
+    static constexpr q31_t one = q31_t::max_val;
+
     state_t m_state;
     q31_t   m_da;
     q31_t   m_dd;
