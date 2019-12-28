@@ -3,6 +3,7 @@
 #include <list.h>
 #include "utils.h"
 #include "freqmod.h"
+#include "control.h"
 
 template<typename DISPLAY>
 struct channel_t: public imodel
@@ -16,22 +17,6 @@ struct channel_t: public imodel
 
     void setup(const bool *quiet)
     {
-        //const fontlib::font_t& font = fontlib::cmunbi_28.cpp
-        //const fontlib::font_t& font = fontlib::cmunbtl_28;
-        //const fontlib::font_t& font = fontlib::cmunbto_28;
-        //const fontlib::font_t& font = fontlib::cmunbx_28;
-        //const fontlib::font_t& font = fontlib::cmunit_28;
-        //const fontlib::font_t& font = fontlib::cmunrm_28;
-        //const fontlib::font_t& font = fontlib::cmunsi_28;
-        //const fontlib::font_t& font = fontlib::cmunso_28;
-        //const fontlib::font_t& font = fontlib::cmunss_28;
-        //const fontlib::font_t& font = fontlib::cmunssdc_28;
-        //const fontlib::font_t& font = fontlib::cmunsx_28;
-        //const fontlib::font_t& font = fontlib::cmuntb_28;
-        //const fontlib::font_t& font = fontlib::cmunti_28;
-        //const fontlib::font_t& font = fontlib::cmuntt_28;
-        //const fontlib::font_t& font = fontlib::cmuntx_28;
-        //const fontlib::font_t& font = fontlib::cmunvi_28;
         const fontlib::font_t& font = fontlib::cmunvt_28;
         const fontlib::font_t& large = fontlib::cmunssdc_32;
 
@@ -92,6 +77,14 @@ struct channel_t: public imodel
         l.push_back(&m_transpose);
         l.push_back(&m_tuning);
         return l;
+    }
+
+    void update(const ctrl_t& ctrl)
+    {
+        m_note = m_freq = m_voct.freq(ctrl.freq);
+        m_cv1 = ctrl.cv1;
+        m_cv2 = ctrl.cv2;
+        m_cv3 = ctrl.cv3;
     }
 
     // imodel

@@ -4,6 +4,7 @@
 #include <gpio.h>
 #include <adc.h>
 #include <dma.h>
+#include "control.h"
 
 namespace analog
 {
@@ -39,6 +40,29 @@ template<> inline uint16_t readb<1>() { return adc2_buf[3]; }
 template<> inline uint16_t readb<2>() { return adc2_buf[4]; }
 template<> inline uint16_t readb<3>() { return adc2_buf[5]; }
 template<> inline uint16_t readb<4>() { return adc1_buf[6]; }
+
+static inline float voct_adc_to_cv(uint16_t adc)
+{
+    static constexpr float voct_volt_per_adc = 1. / 464.67;
+
+    return (2745.67 - static_cast<float>(adc)) * voct_volt_per_adc;
+}
+
+void read_cv_a(ctrl_t& ctrl)
+{
+    ctrl.freq = voct_adc_to_cv(reada<0>());
+    ctrl.cv1 = reada<1>();
+    ctrl.cv2 = reada<2>();
+    ctrl.cv3 = reada<3>();
+}
+
+void read_cv_b(ctrl_t& ctrl)
+{
+    ctrl.freq = voct_adc_to_cv(readb<0>());
+    ctrl.cv1 = readb<1>();
+    ctrl.cv2 = readb<2>();
+    ctrl.cv3 = readb<3>();
+}
 
 void setup()
 {

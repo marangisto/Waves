@@ -3,19 +3,12 @@
 #include <algorithm>
 #include <fixed.h>
 #include <math.h>
+#include "control.h"
 
 namespace synth
 {
 
 using namespace fixed;
-
-struct ctrl_t
-{
-    float   freq;
-    float   cv1;
-    float   cv2;
-    float   cv3;
-};
 
 struct imodel
 {

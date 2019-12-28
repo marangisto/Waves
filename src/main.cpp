@@ -1,10 +1,6 @@
+static const unsigned long SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
 
 #include "board.h"
-//#include <math.h>
-//#include <fixed.h>
-
-static const uint32_t SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
-
 #include "gui.h"
 
 using hal::sys_tick;
@@ -16,13 +12,6 @@ using namespace fixed;
 typedef hal::timer::timer_t<2> dac_tim;
 
 static volatile float dac_load = 0.0f;
-
-static const float voct_volt_per_adc = 1. / 464.67;
-
-static inline float adc2cv(uint16_t adc)
-{
-    return (2745.67 - static_cast<float>(adc)) * voct_volt_per_adc;
-}
 
 static imodel *model_a = 0;
 static imodel *model_b = 0;
@@ -56,11 +45,7 @@ static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     ctrl_t ctrl;
 
-    ctrl.freq = adc2cv(reada<0>());
-    ctrl.cv1 = reada<1>();
-    ctrl.cv2 = reada<2>();
-    ctrl.cv3 = reada<3>();
-
+    read_cv_a(ctrl);
     if (model_a)
         model_a->generate(ctrl, buf, n, stride);
 }
@@ -69,11 +54,7 @@ static void fb(int32_t *buf, uint16_t n, uint8_t stride)
 {
     ctrl_t ctrl;
 
-    ctrl.freq = adc2cv(readb<0>());
-    ctrl.cv1 = reada<1>();
-    ctrl.cv2 = reada<2>();
-    ctrl.cv3 = reada<3>();
-
+    read_cv_b(ctrl);
     if (model_b)
         model_b->generate(ctrl, buf, n, stride);
 }
@@ -123,22 +104,16 @@ int main()
         if (mq::get(m))
             gui.handle_message(m);
 
-        gui.channel_a.m_freq = gui.channel_a.m_voct.freq(adc2cv(reada<0>()));
-        gui.channel_a.m_note = gui.channel_a.m_freq;
-        gui.channel_a.m_cv1 = reada<1>();
-        gui.channel_a.m_cv2 = reada<2>();
-        gui.channel_a.m_cv3 = reada<3>();
+        ctrl_t ctrl;
 
-        gui.channel_b.m_freq = gui.channel_b.m_voct.freq(adc2cv(readb<0>()));
-        gui.channel_b.m_note = gui.channel_b.m_freq;
-        gui.channel_b.m_cv1 = readb<1>();
-        gui.channel_b.m_cv2 = readb<2>();
-        gui.channel_b.m_cv3 = readb<3>();
+        read_cv_a(ctrl);
+        gui.channel_a.update(ctrl);
+        read_cv_b(ctrl);
+        gui.channel_b.update(ctrl);
 
         float load = dac_load;  // capture volatile value
 
         gui.load = load;
-
         sys_tick::delay_ms(1);
     }
 }
