@@ -9,6 +9,20 @@ namespace synth
 
 using namespace fixed;
 
+struct ctrl_t
+{
+    float   freq;
+    float   cv1;
+    float   cv2;
+    float   cv3;
+};
+
+struct imodel
+{
+    virtual void generate(ctrl_t& ctx, int32_t *buf, uint16_t n, uint8_t stride) = 0;
+    virtual void trigger(bool rise = true) = 0;
+};
+
 enum scale_t
     { unscaled
     , chromatic

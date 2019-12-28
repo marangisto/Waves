@@ -1,5 +1,6 @@
 #pragma once
 
+#include "signal.h"
 #include <list.h>
 
 template<typename DISPLAY>
@@ -24,6 +25,7 @@ struct opfields_t
         column.append(&attack);
         column.append(&decay);
         frame.setup(&column, dim_gray);
+        m_carrier.setup(440.0f);
     }
 
     void render()
@@ -42,6 +44,26 @@ struct opfields_t
         return l;
     }
 
+    __attribute__((always_inline))
+    inline void update(float freq)
+    {
+        m_carrier.control(freq * ratio, index);
+    }
+
+    __attribute__((always_inline))
+    inline q31_t sample(q31_t mod = q31_t())
+    {
+        return response(m_envelope.sample()) * m_carrier.sample(mod);
+    }
+
+    __attribute__((always_inline))
+    inline void trigger()
+    {
+        m_envelope.set_a(attack * 0.01f);    // FIXME: curve control
+        m_envelope.set_d(decay * 0.1f);      // FIXME: curve control
+        m_envelope.trigger();
+    }
+
     intlabel            opno;
     floatbox            ratio;
     floatbox            index;
@@ -49,6 +71,8 @@ struct opfields_t
     floatbox            decay;
     vertical_t<DISPLAY> column;
     border_t<DISPLAY>   frame;
+    signal_generator_t<sine, SAMPLE_FREQ>   m_carrier;
+    ad_envelope_t<SAMPLE_FREQ>              m_envelope;
 };
 
 template<typename DISPLAY>
@@ -89,7 +113,7 @@ struct oplabels_t
 };
 
 template<typename DISPLAY>
-struct freqmod_ui_t
+struct freqmod_ui_t: public imodel
 {
     enum state_t { navigating, editing };
     static constexpr uint8_t num_ops = 2;
@@ -160,6 +184,23 @@ struct freqmod_ui_t
         }
 
         return true;   // take more messages
+    }
+
+    // imodel
+
+    virtual void generate(ctrl_t& ctx, int32_t *buf, uint16_t n, uint8_t stride)
+    {
+        for (uint8_t i = 0; i < num_ops; ++i)
+            ops[i].update(ctx.freq);
+        for (uint16_t i = 0; i < n; ++i, buf += stride)
+            *buf = board::dacdma::swap(ops[0].sample(ops[1].sample()).q);
+    }
+
+    virtual void trigger(bool rise)
+    {
+        if (rise)
+            for (uint8_t i = 0; i < num_ops; ++i)
+                ops[i].trigger();
     }
 
     oplabels_t<DISPLAY>     labels;

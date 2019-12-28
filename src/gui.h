@@ -5,7 +5,7 @@
 #include "freqmod.h"
 
 template<typename DISPLAY>
-struct channel_t
+struct channel_t: public imodel
 {
     typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_note> notebox;
@@ -56,6 +56,7 @@ struct channel_t
         column.append(&tuning);
         frame.setup(&column, dim_gray);
         voct.setup(tuning.ptr(), transpose.ptr(), scale.ptr());
+        model = &freqmod_ui;
         freqmod_ui.setup();
     }
 
@@ -93,6 +94,19 @@ struct channel_t
         return l;
     }
 
+    // imodel
+
+    virtual void generate(ctrl_t& ctrl, int32_t *buf, uint16_t n, uint8_t stride)
+    {
+        ctrl.freq = voct.freq(ctrl.freq);
+        model->generate(ctrl, buf, n, stride);
+    }
+
+    virtual void trigger(bool rise)
+    {
+        model->trigger(rise);
+    }
+
     notebox                 note;
     floatbox                freq;
     intbox                  cv1, cv2, cv3;
@@ -103,6 +117,7 @@ struct channel_t
     vertical_t<DISPLAY>     column;
     border_t<DISPLAY>       frame;
     voct_t                  voct;
+    imodel                  *model;
     freqmod_ui_t<DISPLAY>   freqmod_ui;
 };
 
