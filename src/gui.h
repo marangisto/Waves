@@ -41,7 +41,6 @@ struct channel_t: public imodel
         m_column.append(&m_tuning);
         m_frame.setup(&m_column, dim_gray);
         m_voct.setup(m_tuning.ptr(), m_transpose.ptr(), m_scale.ptr());
-        m_model = &m_freqmod;
         m_freqmod.setup();
     }
 
@@ -92,12 +91,25 @@ struct channel_t: public imodel
     virtual void generate(ctrl_t& ctrl, int32_t *buf, uint16_t n, uint8_t stride)
     {
         ctrl.freq = m_voct.freq(ctrl.freq);
-        m_model->generate(ctrl, buf, n, stride);
+
+        switch (m_prog)
+        {
+            case pg_freqmod: m_freqmod.generate(ctrl, buf, n, stride); break;
+            case pg_classic: break;
+            case pg_noise: break;
+            default: ;
+        }
     }
 
     virtual void trigger(bool rise)
     {
-        m_model->trigger(rise);
+        switch (m_prog)
+        {
+            case pg_freqmod: m_freqmod.trigger(rise); break;
+            case pg_classic: break;
+            case pg_noise: break;
+            default: ;
+        }
     }
 
     notebox                 m_note;
@@ -110,7 +122,6 @@ struct channel_t: public imodel
     vertical_t<DISPLAY>     m_column;
     border_t<DISPLAY>       m_frame;
     voct_t                  m_voct;
-    imodel                  *m_model;
     freqmod_t<DISPLAY>      m_freqmod;
 };
 
