@@ -17,13 +17,17 @@ struct oscillator_t
 
         m_opno.setup(font, dark_fg, dark_bg, i);
         m_waveform.setup(font, normal_fg, normal_bg, wf_sine);
+        m_weight.setup(font, normal_fg, normal_bg, i ? 0.0f : 1.0f);
         m_ratio.setup(font, normal_fg, normal_bg, 1.0f);
+        m_detune.setup(font, normal_fg, normal_bg, 0.0f);
         m_attack.setup(font, normal_fg, normal_bg, 1.0f);
         m_decay.setup(font, normal_fg, normal_bg, 8.0f);
         m_column.setup();
         m_column.append(&m_opno);
         m_column.append(&m_waveform);
+        m_column.append(&m_weight);
         m_column.append(&m_ratio);
+        m_column.append(&m_detune);
         m_column.append(&m_attack);
         m_column.append(&m_decay);
         m_frame.setup(&m_column, dim_gray);
@@ -41,7 +45,9 @@ struct oscillator_t
         list<ifocus*> l;
 
         l.push_back(&m_waveform);
+        l.push_back(&m_weight);
         l.push_back(&m_ratio);
+        l.push_back(&m_detune);
         l.push_back(&m_attack);
         l.push_back(&m_decay);
         return l;
@@ -69,7 +75,9 @@ struct oscillator_t
 
     intlabel                                    m_opno;
     wavebox                                     m_waveform;
+    floatbox                                    m_weight;
     floatbox                                    m_ratio;
+    floatbox                                    m_detune;
     floatbox                                    m_attack;
     floatbox                                    m_decay;
     vertical_t<DISPLAY>                         m_column;
@@ -87,15 +95,19 @@ struct osclabels_t
     {
         const fontlib::font_t& font = fontlib::cmunvt_28;
 
-        m_opno.setup(font, dark_fg, dark_bg, "op no");
-        m_waveform.setup(font, normal_fg, normal_bg, "waveform");
-        m_ratio.setup(font, normal_fg, normal_bg, "ratio");
-        m_attack.setup(font, normal_fg, normal_bg, "attack");
-        m_decay.setup(font, normal_fg, normal_bg, "decay");
+        m_opno.setup(font, dark_fg, dark_bg, "osc no");
+        m_waveform.setup(font, alternate_fg, alternate_bg, "shape");
+        m_weight.setup(font, alternate_fg, alternate_bg, "weight");
+        m_ratio.setup(font, alternate_fg, alternate_bg, "ratio");
+        m_detune.setup(font, alternate_fg, alternate_bg, "detune");
+        m_attack.setup(font, alternate_fg, alternate_bg, "attack");
+        m_decay.setup(font, alternate_fg, alternate_bg, "decay");
         m_column.setup();
         m_column.append(&m_opno);
         m_column.append(&m_waveform);
+        m_column.append(&m_weight);
         m_column.append(&m_ratio);
+        m_column.append(&m_detune);
         m_column.append(&m_attack);
         m_column.append(&m_decay);
         m_frame.setup(&m_column, dim_gray);
@@ -108,7 +120,9 @@ struct osclabels_t
 
     label               m_opno;
     label               m_waveform;
+    label               m_weight;
     label               m_ratio;
+    label               m_detune;
     label               m_attack;
     label               m_decay;
     vertical_t<DISPLAY> m_column;
@@ -193,14 +207,23 @@ struct classic_t: public imodel
 
     virtual void generate(ctrl_t& ctx, int32_t *buf, uint16_t n, uint8_t stride)
     {
-        q31_t w0(0.5f), w1 = q31_t(1.0f) - w0;
+        float k = 0.0f;
+        q31_t w[num_ops];
 
         for (uint8_t i = 0; i < num_ops; ++i)
-            m_ops[i].update(ctx.freq);
+            k += fabsf(m_ops[i].m_weight);
+
+        k = k > 0.0f ? 1.0 / k : 0.0f;
+
+        for (uint8_t i = 0; i < num_ops; ++i)
+        {
+            w[i] = q31_t(k * m_ops[i].m_weight);
+            m_ops[i].update(ctx.freq * (1.0 + 1e-3 * m_ops[i].m_detune));
+        }
 
         for (uint16_t i = 0; i < n; ++i, buf += stride)
         {
-            q31_t y = w0 * m_ops[0].sample() + w1 * m_ops[1].sample();
+            q31_t y = w[0] * m_ops[0].sample() + w[1] * m_ops[1].sample();
 
             *buf = board::dacdma::swap(y.q);
         }
