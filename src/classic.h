@@ -4,32 +4,6 @@
 #include "utils.h"
 #include <list.h>
 
-struct show_waveform
-{
-    typedef waveform_t T;
-    static const char *show(T x)
-    {
-        switch (x)
-        {
-        case wf_sine:       return "Sine";
-        case wf_triangle:   return "Tri";
-        case wf_sawtooth:   return "Saw";
-        case wf_square:     return "Rect";
-        default:            return "???";
-        }
-    }
-};
-
-struct edit_waveform
-{
-    static void edit(volatile waveform_t& x, int i)
-    {
-        int j = static_cast<int>(x) + i;
-
-        x = static_cast<waveform_t>(j < 0 ? wf_sentinel - 1 : (j < wf_sentinel ? j : 0));
-    }
-};
-
 template<typename DISPLAY>
 struct oscillator_t
 {

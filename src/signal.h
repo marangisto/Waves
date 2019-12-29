@@ -88,14 +88,6 @@ struct square
     }
 };
 
-enum waveform_t
-    { wf_sine
-    , wf_triangle
-    , wf_sawtooth
-    , wf_square
-    , wf_sentinel
-    };
-
 struct classic
 {
     inline q31_t value(q31_t phi)

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <widget.h>
-#include <synth.h>
-#include <message.h>
+#include "synth.h"
+#include "message.h"
+#include "types.h"
 
 using namespace text;
 using namespace color;
@@ -100,13 +101,6 @@ struct edit_scale
     }
 };
 
-enum prog_t
-    { pg_freqmod
-    , pg_classic
-    , pg_noise
-    , pg_sentinel
-    };
-
 struct show_prog
 {
     typedef prog_t T;
@@ -129,6 +123,32 @@ struct edit_prog
         int j = static_cast<int>(x) + i;
 
         x = static_cast<prog_t>(j < 0 ? pg_sentinel - 1 : (j < pg_sentinel ? j : 0));
+    }
+};
+
+struct show_waveform
+{
+    typedef waveform_t T;
+    static const char *show(T x)
+    {
+        switch (x)
+        {
+        case wf_sine:       return "Sine";
+        case wf_triangle:   return "Tri";
+        case wf_sawtooth:   return "Saw";
+        case wf_square:     return "Rect";
+        default:            return "???";
+        }
+    }
+};
+
+struct edit_waveform
+{
+    static void edit(volatile waveform_t& x, int i)
+    {
+        int j = static_cast<int>(x) + i;
+
+        x = static_cast<waveform_t>(j < 0 ? wf_sentinel - 1 : (j < wf_sentinel ? j : 0));
     }
 };
 
