@@ -85,10 +85,10 @@ struct oplabels_t
         const fontlib::font_t& font = fontlib::cmunvt_28;
 
         m_opno.setup(font, dark_fg, dark_bg, "op no");
-        m_ratio.setup(font, normal_fg, normal_bg, "ratio");
-        m_index.setup(font, normal_fg, normal_bg, "index");
-        m_attack.setup(font, normal_fg, normal_bg, "attack");
-        m_decay.setup(font, normal_fg, normal_bg, "decay");
+        m_ratio.setup(font, alternate_fg, alternate_bg, "ratio");
+        m_index.setup(font, alternate_fg, alternate_bg, "index");
+        m_attack.setup(font, alternate_fg, alternate_bg, "attack");
+        m_decay.setup(font, alternate_fg, alternate_bg, "decay");
         m_column.setup();
         m_column.append(&m_opno);
         m_column.append(&m_ratio);
