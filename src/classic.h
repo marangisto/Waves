@@ -1,15 +1,8 @@
 #pragma once
 
 #include "signal.h"
+#include "utils.h"
 #include <list.h>
-
-enum waveform_t
-    { wf_sine
-    , wf_triangle
-    , wf_sawtooth
-    , wf_square
-    , wf_sentinel
-    };
 
 struct show_waveform
 {
@@ -61,6 +54,7 @@ struct oscillator_t
         m_column.append(&m_decay);
         m_frame.setup(&m_column, dim_gray);
         m_carrier.setup(440.0f);
+        m_carrier.m_waveform = m_waveform.ptr();;
     }
 
     void render()
@@ -99,15 +93,15 @@ struct oscillator_t
         m_envelope.trigger();
     }
 
-    intlabel                                m_opno;
-    wavebox                                 m_waveform;
-    floatbox                                m_ratio;
-    floatbox                                m_attack;
-    floatbox                                m_decay;
-    vertical_t<DISPLAY>                     m_column;
-    border_t<DISPLAY>                       m_frame;
-    signal_generator_t<sine, SAMPLE_FREQ>   m_carrier;
-    ad_envelope_t<SAMPLE_FREQ>              m_envelope;
+    intlabel                                    m_opno;
+    wavebox                                     m_waveform;
+    floatbox                                    m_ratio;
+    floatbox                                    m_attack;
+    floatbox                                    m_decay;
+    vertical_t<DISPLAY>                         m_column;
+    border_t<DISPLAY>                           m_frame;
+    signal_generator_t<classic, SAMPLE_FREQ>    m_carrier;
+    ad_envelope_t<SAMPLE_FREQ>                  m_envelope;
 };
 
 template<typename DISPLAY>

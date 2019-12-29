@@ -13,7 +13,7 @@ void setup_cordic()
 }
 
 template<typename WAVEGEN, uint32_t SAMPLE_FREQ>
-class signal_generator_t
+class signal_generator_t: public WAVEGEN
 {
 public:
     void setup(float freq = 440.)
@@ -48,7 +48,7 @@ private:
 
 struct sine
 {
-    static inline q31_t value(q31_t phi)
+    inline q31_t value(q31_t phi)
     {
         using namespace hal::cordic;
 
@@ -58,7 +58,7 @@ struct sine
 
 struct triangle
 {
-    static inline q31_t value(q31_t phi)
+    inline q31_t value(q31_t phi)
     {
         static constexpr q31_t one(q31_t(1.0f));
         static constexpr q31_t half(q31_t(0.5f));
@@ -74,7 +74,7 @@ struct triangle
 
 struct sawtooth
 {
-    static inline q31_t value(q31_t phi)
+    inline q31_t value(q31_t phi)
     {
         return phi;
     }
@@ -82,28 +82,38 @@ struct sawtooth
 
 struct square
 {
-    static inline q31_t value(q31_t phi)
+    inline q31_t value(q31_t phi)
     {
         return phi < q31_t(0l) ? q31_t::max_val : q31_t::min_val;
     }
 };
 
-struct mixed
+enum waveform_t
+    { wf_sine
+    , wf_triangle
+    , wf_sawtooth
+    , wf_square
+    , wf_sentinel
+    };
+
+struct classic
 {
-    static inline q31_t value(q31_t phi)
+    inline q31_t value(q31_t phi)
     {
-        switch (m_mode)
+        switch (*m_waveform)
         {
-            case 0: return sine::value(phi);
-            case 1: return triangle::value(phi);
-            case 2: return sawtooth::value(phi);
-            case 3: return square::value(phi);
+            case wf_sine: return m_sine.value(phi);
+            case wf_triangle: return m_triangle.value(phi);
+            case wf_sawtooth: return m_sawtooth.value(phi);
+            case wf_square: return m_square.value(phi);
             default: return q31_t(0l);
         }
     }
 
-    static uint8_t m_mode;
+    const volatile waveform_t   *m_waveform;
+    sine                        m_sine;
+    triangle                    m_triangle;
+    sawtooth                    m_sawtooth;
+    square                      m_square;
 };
-
-uint8_t mixed::m_mode = 0;
 
