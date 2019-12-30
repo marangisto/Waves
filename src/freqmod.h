@@ -112,6 +112,49 @@ struct oplabels_t
     border_t<DISPLAY>   m_frame;
 };
 
+template<typename DISPLAY, int DIM>
+struct matrix_t
+{
+    typedef valuebox_t<DISPLAY, show_float<0>, edit_float<1> > floatbox;
+
+    void setup()
+    {
+        const fontlib::font_t& font = fontlib::cmunvt_28;
+
+        for (uint8_t c = 0; c < DIM; ++c)
+        {
+            m_col[c].setup();
+            for (uint8_t r = 0; r < DIM; ++r)
+            {
+                m_element[c][r].setup(font, dark_fg, dark_bg, 0.0f);
+                m_col[c].append(&m_element[c][r]);
+            }
+            m_panel.append(&m_col[c]);
+        }
+        m_frame.setup(&m_panel, dim_gray);
+    }
+
+    void render()
+    {
+        m_frame.render();
+    }
+
+    list<ifocus*> navigation()
+    {
+        list<ifocus*> l;
+
+        for (uint8_t c = 0; c < DIM; ++c)
+            for (uint8_t r = 0; r < DIM; ++r)
+                l.push_back(&m_element[c][r]);
+        return l;
+    }
+
+    floatbox                                m_element[DIM][DIM];
+    vertical_t<DISPLAY>                     m_col[DIM];
+    horizontal_t<DISPLAY>                   m_panel;
+    border_t<DISPLAY>                       m_frame;
+};
+
 template<typename DISPLAY>
 struct freqmod_t: public screen_t<DISPLAY>, public imodel
 {
@@ -134,7 +177,14 @@ struct freqmod_t: public screen_t<DISPLAY>, public imodel
             navigation.splice(navigation.end(), m_ops[i].navigation());
         }
 
-        screen_t<DISPLAY>::setup(&m_panel, navigation, normal_cursor, active_cursor);
+        m_matrix.setup();
+        navigation.splice(navigation.end(), m_matrix.navigation());
+
+        m_screen.setup();
+        m_screen.append(&m_panel);
+        m_screen.append(&m_matrix.m_frame);
+
+        screen_t<DISPLAY>::setup(&m_screen, navigation, normal_cursor, active_cursor);
     }
 
     // imodel
@@ -154,8 +204,10 @@ struct freqmod_t: public screen_t<DISPLAY>, public imodel
                 m_ops[i].trigger();
     }
 
-    oplabels_t<DISPLAY>     m_labels;
-    operator_t<DISPLAY>     m_ops[num_ops];
-    horizontal_t<DISPLAY>   m_panel;
+    oplabels_t<DISPLAY>         m_labels;
+    operator_t<DISPLAY>         m_ops[num_ops];
+    horizontal_t<DISPLAY>       m_panel;
+    vertical_t<DISPLAY>         m_screen;
+    matrix_t<DISPLAY, num_ops>  m_matrix;
 };
 
