@@ -80,7 +80,7 @@ int main()
     board::dacdma::set_right_gen(fb);
 
     board::setup();
-    sys_tick::delay_ms(1000);
+    sys_tick::delay_ms(250);
 
     triga::enable_interrupt<falling_edge>();
     trigb::enable_interrupt<falling_edge>();
@@ -124,5 +124,4 @@ namespace std
 void __throw_bad_function_call() { while(1); }
 
 } // namespace std
-
 

@@ -11,7 +11,7 @@
 #include <analog.h>
 #include <dacdma.h>
 #include <fifo.h>
-#include "message.h"
+#include <message.h>
 
 namespace board
 {
@@ -25,7 +25,6 @@ using namespace st7789;
 using namespace graphics;
 using namespace dacdma;
 using namespace analog;
-using namespace waves;
 
 typedef hal::timer::timer_t<7> aux_tim;
 

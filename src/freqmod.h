@@ -113,7 +113,7 @@ struct oplabels_t
 };
 
 template<typename DISPLAY>
-struct freqmod_t: public imodel
+struct freqmod_t: public screen_t<DISPLAY>, public imodel
 {
     enum state_t { navigating, editing };
     static constexpr uint8_t num_ops = 2;
@@ -125,65 +125,16 @@ struct freqmod_t: public imodel
         m_labels.setup();
         m_panel.append(&m_labels.m_frame);
 
+        list<ifocus*> navigation;
+
         for (uint8_t i = 0; i < num_ops; ++i)
         {
             m_ops[i].setup(i);
             m_panel.append(&m_ops[i].m_frame);
-            m_navigation.splice(m_navigation.end(), m_ops[i].navigation());
-        }
-        m_panel.constrain(10, 240, 10, 240); // fixme: what about zero min?
-        m_panel.layout(0, 0);
-
-        m_focus = m_navigation.begin();
-        (*m_focus)->focus(normal_cursor);
-    }
-
-    void render()
-    {
-        m_panel.render();
-    }
-
-    bool handle_message(const message_t& m)
-    {
-        switch (m.index())
-        {
-        case button_press:
-            switch (std::get<button_press>(m))
-            {
-            case 0: // encoder button
-                m_state = m_state == navigating ? editing : navigating;
-                (*m_focus)->focus(m_state == editing ? active_cursor : normal_cursor);
-                break;
-            case 1: // top-left
-                return false;           // exit window
-            case 2: // bottom-left
-                break;
-            case 3: // top-right
-                return false;           // exit window
-            case 4: // bottom-right
-                break;
-            default: ;  // unhandled button
-            }
-            break;
-        case encoder_delta:
-            if (m_state == navigating)
-            {
-                int dir = std::get<encoder_delta>(m);
-
-                (*m_focus)->defocus();
-                if (dir > 0 && ++m_focus == m_navigation.end())
-                    m_focus = m_navigation.begin();
-                else if (dir < 0 && --m_focus == m_navigation.end())
-                    --m_focus;
-                (*m_focus)->focus(normal_cursor);
-            }
-            else
-                (*m_focus)->edit(std::get<encoder_delta>(m));
-            break;
-        default: ;      // unhandled message
+            navigation.splice(navigation.end(), m_ops[i].navigation());
         }
 
-        return true;   // take more messages
+        screen_t<DISPLAY>::setup(&m_panel, navigation, normal_cursor, active_cursor);
     }
 
     // imodel
@@ -206,8 +157,5 @@ struct freqmod_t: public imodel
     oplabels_t<DISPLAY>     m_labels;
     operator_t<DISPLAY>     m_ops[num_ops];
     horizontal_t<DISPLAY>   m_panel;
-    list<ifocus*>           m_navigation;
-    list_iterator<ifocus*>  m_focus;
-    state_t                 m_state;
 };
 
