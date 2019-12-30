@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "freqmod.h"
 #include "classic.h"
+#include "kick.h"
 #include "control.h"
 
 template<typename DISPLAY>
@@ -44,6 +45,7 @@ struct channel_t: public imodel
         m_voct.setup(m_tuning.ptr(), m_transpose.ptr(), m_scale.ptr());
         m_freqmod.setup();
         m_classic.setup();
+        m_kick.setup();
     }
 
     void render()
@@ -57,6 +59,7 @@ struct channel_t: public imodel
         {
             case pg_freqmod: m_freqmod.render(); break;
             case pg_classic: m_classic.render(); break;
+            case pg_kick: m_kick.render(); break;
             default: ;
         }
     }
@@ -67,6 +70,7 @@ struct channel_t: public imodel
         {
             case pg_freqmod: return m_freqmod.handle_message(m);
             case pg_classic: return m_classic.handle_message(m);
+            case pg_kick: return m_kick.handle_message(m);
             default: return false;
         }
     }
@@ -100,6 +104,7 @@ struct channel_t: public imodel
         {
             case pg_freqmod: m_freqmod.generate(ctrl, buf, n, stride); break;
             case pg_classic: m_classic.generate(ctrl, buf, n, stride); break;
+            case pg_kick: m_kick.generate(ctrl, buf, n, stride); break;
             case pg_noise: break;
             default: ;
         }
@@ -111,6 +116,7 @@ struct channel_t: public imodel
         {
             case pg_freqmod: m_freqmod.trigger(rise); break;
             case pg_classic: m_classic.trigger(rise); break;
+            case pg_kick: m_kick.trigger(rise); break;
             case pg_noise: break;
             default: ;
         }
@@ -128,6 +134,7 @@ struct channel_t: public imodel
     voct_t                  m_voct;
     freqmod_t<DISPLAY>      m_freqmod;
     classic_t<DISPLAY>      m_classic;
+    kick_t<DISPLAY>         m_kick;
 };
 
 template<typename DISPLAY>
