@@ -2,10 +2,11 @@
 
 #include <list.h>
 #include "utils.h"
+#include "control.h"
 #include "freqmod.h"
 #include "classic.h"
 #include "kick.h"
-#include "control.h"
+#include "snare.h"
 
 template<typename DISPLAY>
 struct channel_t: public imodel
@@ -46,6 +47,7 @@ struct channel_t: public imodel
         m_freqmod.setup();
         m_classic.setup();
         m_kick.setup();
+        m_snare.setup();
     }
 
     void render()
@@ -57,9 +59,10 @@ struct channel_t: public imodel
     {
         switch (m_prog)
         {
-            case pg_freqmod: m_freqmod.render(); break;
-            case pg_classic: m_classic.render(); break;
-            case pg_kick: m_kick.render(); break;
+            case pg_freqmod:    m_freqmod.render(); break;
+            case pg_classic:    m_classic.render(); break;
+            case pg_kick:       m_kick.render(); break;
+            case pg_snare:      m_snare.render(); break;
             default: ;
         }
     }
@@ -68,10 +71,11 @@ struct channel_t: public imodel
     {
         switch (m_prog)
         {
-            case pg_freqmod: return m_freqmod.handle_message(m);
-            case pg_classic: return m_classic.handle_message(m);
-            case pg_kick: return m_kick.handle_message(m);
-            default: return false;
+            case pg_freqmod:    return m_freqmod.handle_message(m);
+            case pg_classic:    return m_classic.handle_message(m);
+            case pg_kick:       return m_kick.handle_message(m);
+            case pg_snare:      return m_snare.handle_message(m);
+            default:            return false;
         }
     }
 
@@ -102,10 +106,10 @@ struct channel_t: public imodel
 
         switch (m_prog)
         {
-            case pg_freqmod: m_freqmod.generate(ctrl, buf, n, stride); break;
-            case pg_classic: m_classic.generate(ctrl, buf, n, stride); break;
-            case pg_kick: m_kick.generate(ctrl, buf, n, stride); break;
-            case pg_noise: break;
+            case pg_freqmod:    m_freqmod.generate(ctrl, buf, n, stride); break;
+            case pg_classic:    m_classic.generate(ctrl, buf, n, stride); break;
+            case pg_kick:       m_kick.generate(ctrl, buf, n, stride); break;
+            case pg_snare:      m_snare.generate(ctrl, buf, n, stride); break;
             default: ;
         }
     }
@@ -114,10 +118,10 @@ struct channel_t: public imodel
     {
         switch (m_prog)
         {
-            case pg_freqmod: m_freqmod.trigger(rise); break;
-            case pg_classic: m_classic.trigger(rise); break;
-            case pg_kick: m_kick.trigger(rise); break;
-            case pg_noise: break;
+            case pg_freqmod:    m_freqmod.trigger(rise); break;
+            case pg_classic:    m_classic.trigger(rise); break;
+            case pg_kick:       m_kick.trigger(rise); break;
+            case pg_snare:      m_snare.trigger(rise); break;
             default: ;
         }
     }
@@ -135,6 +139,7 @@ struct channel_t: public imodel
     freqmod_t<DISPLAY>      m_freqmod;
     classic_t<DISPLAY>      m_classic;
     kick_t<DISPLAY>         m_kick;
+    snare_t<DISPLAY>        m_snare;
 };
 
 template<typename DISPLAY>

@@ -4,7 +4,7 @@ enum prog_t
     { pg_freqmod
     , pg_classic
     , pg_kick
-    , pg_noise
+    , pg_snare
     , pg_sentinel
     };
 
