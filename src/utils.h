@@ -71,6 +71,7 @@ struct show_prog
         case pg_classic:    return "Classic";
         case pg_kick:       return "Kick";
         case pg_snare:      return "Snare";
+        case pg_hihat:      return "Hi-hat";
         default:            return "???";
         }
     }

@@ -5,6 +5,7 @@ enum prog_t
     , pg_classic
     , pg_kick
     , pg_snare
+    , pg_hihat
     , pg_sentinel
     };
 

@@ -155,6 +155,14 @@ static inline q31_t response(q31_t x)
     return x;
 }
 
+__attribute__((always_inline))
+static inline float uniform_rand()
+{
+    static constexpr float rand_max_inv = 1.0f / RAND_MAX;
+
+    return rand_max_inv * static_cast<float>(rand());
+}
+
 template<uint32_t SAMPLE_FREQ>
 class ad_envelope_t
 {
