@@ -89,7 +89,6 @@ struct oplabels_t: border_t<DISPLAY>
 template<ch_t CH, typename DISPLAY>
 struct freqmod_t: window_t<DISPLAY>, imodel
 {
-    enum state_t { navigating, editing };
     static constexpr uint8_t num_ops = 2;
     typedef valuebox_t<DISPLAY, show_str> label;
 

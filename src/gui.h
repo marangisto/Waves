@@ -8,7 +8,7 @@
 //#include "kick.h"
 //#include "snare.h"
 //#include "hihat.h"
-//#include "calib.h"
+#include "calib.h"
 
 template<ch_t CH, typename DISPLAY>
 struct channel_t: border_t<DISPLAY>, imodel
@@ -36,6 +36,8 @@ struct channel_t: border_t<DISPLAY>, imodel
             , &m_prog, &m_scale, &m_transpose, &m_tuning
             )
         , m_freqmod(t)
+        // other modules!
+        , m_calib(t)
         , m_quiet(quiet)
     {
         m_voct.setup(m_tuning.ptr(), m_transpose.ptr(), m_scale.ptr());
@@ -58,8 +60,8 @@ struct channel_t: border_t<DISPLAY>, imodel
             case pg_kick:       return &m_kick;
             case pg_snare:      return &m_snare;
             case pg_hihat:      return &m_hihat;
-            case pg_calib:      return &m_calib;
 */
+            case pg_calib:      return &m_calib;
             default:            return &m_freqmod;  // safety first
         }
     }
@@ -100,8 +102,8 @@ struct channel_t: border_t<DISPLAY>, imodel
             case pg_kick:       m_kick.generate(ctrl, buf, n, stride); break;
             case pg_snare:      m_snare.generate(ctrl, buf, n, stride); break;
             case pg_hihat:      m_hihat.generate(ctrl, buf, n, stride); break;
-            case pg_calib:      m_calib.generate(ctrl, buf, n, stride); break;
 */
+            case pg_calib:      m_calib.generate(ctrl, buf, n, stride); break;
             default: ;
         }
     }
@@ -116,8 +118,8 @@ struct channel_t: border_t<DISPLAY>, imodel
             case pg_kick:       m_kick.trigger(rise); break;
             case pg_snare:      m_snare.trigger(rise); break;
             case pg_hihat:      m_hihat.trigger(rise); break;
-            case pg_calib:      m_calib.trigger(rise); break;
 */
+            case pg_calib:      m_calib.trigger(rise); break;
             default: ;
         }
     }
@@ -133,12 +135,12 @@ struct channel_t: border_t<DISPLAY>, imodel
     voct_t                  m_voct;
     freqmod_t<CH, DISPLAY>  m_freqmod;
 /*
-    classic_t<DISPLAY>      m_classic;
-    kick_t<DISPLAY>         m_kick;
-    snare_t<DISPLAY>        m_snare;
-    hihat_t<DISPLAY>        m_hihat;
-    calib_t<DISPLAY>        m_calib;
+    classic_t<CH, DISPLAY>  m_classic;
+    kick_t<CH, DISPLAY>     m_kick;
+    snare_t<CH, DISPLAY>    m_snare;
+    hihat_t<CH, DISPLAY>    m_hihat;
 */
+    calib_t<CH, DISPLAY>    m_calib;
     const bool&             m_quiet;
 };
 
