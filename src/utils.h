@@ -72,6 +72,7 @@ struct show_prog
         case pg_kick:       return "Kick";
         case pg_snare:      return "Snare";
         case pg_hihat:      return "Hi-hat";
+        case pg_calib:      return "Calib";
         default:            return "???";
         }
     }

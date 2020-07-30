@@ -6,6 +6,7 @@ enum prog_t
     , pg_kick
     , pg_snare
     , pg_hihat
+    , pg_calib
     , pg_sentinel
     };
 
@@ -15,5 +16,10 @@ enum waveform_t
     , wf_sawtooth
     , wf_square
     , wf_sentinel
+    };
+
+enum ch_t
+    { A
+    , B
     };
 

@@ -4,13 +4,14 @@
 #include "utils.h"
 #include "control.h"
 #include "freqmod.h"
-#include "classic.h"
-#include "kick.h"
-#include "snare.h"
-#include "hihat.h"
+//#include "classic.h"
+//#include "kick.h"
+//#include "snare.h"
+//#include "hihat.h"
+//#include "calib.h"
 
-template<typename DISPLAY>
-struct channel_t: public imodel
+template<ch_t CH, typename DISPLAY>
+struct channel_t: border_t<DISPLAY>, imodel
 {
     typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_note> notebox;
@@ -19,67 +20,47 @@ struct channel_t: public imodel
     typedef valuebox_t<DISPLAY, show_float<3>, edit_float<1000> > floatbox;
     typedef valuebox_t<DISPLAY, show_scale, edit_scale> scalebox;
 
-    void setup(const bool *quiet)
+    channel_t(const theme_t& t, const bool& quiet)
+        : border_t<DISPLAY>(&m_column)
+        , m_note(t, 440.0f)
+        , m_freq(t, 440.000f)
+        , m_cv1(t, 0)
+        , m_cv2(t, 0)
+        , m_cv3(t, 0)
+        , m_prog(t, pg_freqmod)
+        , m_scale(t, unscaled)
+        , m_transpose(t, 0)
+        , m_tuning(t, 0.0f)
+        , m_column
+            ( &m_note, &m_freq, &m_cv1, &m_cv2, &m_cv3
+            , &m_prog, &m_scale, &m_transpose, &m_tuning
+            )
+        , m_freqmod(t)
+        , m_quiet(quiet)
     {
-        const fontlib::font_t& font = fontlib::cmunvt_28;
-        const fontlib::font_t& large = fontlib::cmunssdc_32;
-
-        m_note.setup(large, dark_fg, dark_bg, 440.0f, quiet);
-        m_freq.setup(font, alternate_fg, alternate_bg, 440.000f, quiet);
-        m_cv1.setup(font, alternate_fg, alternate_bg, 0, quiet);
-        m_cv2.setup(font, alternate_fg, alternate_bg, 0, quiet);
-        m_cv3.setup(font, alternate_fg, alternate_bg, 0, quiet);
-        m_prog.setup(font, normal_fg, normal_bg, pg_freqmod);
-        m_scale.setup(font, normal_fg, normal_bg, chromatic);
-        m_transpose.setup(font, normal_fg, normal_bg, 0);
-        m_tuning.setup(font, normal_fg, normal_bg, 0.0f);
-        m_column.setup();
-        m_column.append(&m_note);
-        m_column.append(&m_freq);
-        m_column.append(&m_cv1);
-        m_column.append(&m_cv2);
-        m_column.append(&m_cv3);
-        m_column.append(&m_prog);
-        m_column.append(&m_scale);
-        m_column.append(&m_transpose);
-        m_column.append(&m_tuning);
-        m_frame.setup(&m_column, dim_gray);
         m_voct.setup(m_tuning.ptr(), m_transpose.ptr(), m_scale.ptr());
-        m_freqmod.setup();
+        /*
         m_classic.setup();
         m_kick.setup();
         m_snare.setup();
         m_hihat.setup();
+        m_calib.setup();
+        */
     }
 
-    void render()
-    {
-        m_frame.render();
-    }
-
-    void prog_render()
+    window_t<DISPLAY> *program()
     {
         switch (m_prog)
         {
-            case pg_freqmod:    m_freqmod.render(); break;
-            case pg_classic:    m_classic.render(); break;
-            case pg_kick:       m_kick.render(); break;
-            case pg_snare:      m_snare.render(); break;
-            case pg_hihat:      m_hihat.render(); break;
-            default: ;
-        }
-    }
-
-    bool prog_handle_message(const message_t& m)
-    {
-        switch (m_prog)
-        {
-            case pg_freqmod:    return m_freqmod.handle_message(m);
-            case pg_classic:    return m_classic.handle_message(m);
-            case pg_kick:       return m_kick.handle_message(m);
-            case pg_snare:      return m_snare.handle_message(m);
-            case pg_hihat:      return m_hihat.handle_message(m);
-            default:            return false;
+            case pg_freqmod:    return &m_freqmod;
+/*
+            case pg_classic:    return &m_classic;
+            case pg_kick:       return &m_kick;
+            case pg_snare:      return &m_snare;
+            case pg_hihat:      return &m_hihat;
+            case pg_calib:      return &m_calib;
+*/
+            default:            return &m_freqmod;  // safety first
         }
     }
 
@@ -96,10 +77,13 @@ struct channel_t: public imodel
 
     void update(const ctrl_t& ctrl)
     {
-        m_note = m_freq = m_voct.freq(ctrl.freq);
-        m_cv1 = ctrl.cv1;
-        m_cv2 = ctrl.cv2;
-        m_cv3 = ctrl.cv3;
+        if (!m_quiet)
+        {
+            m_note = m_freq = m_voct.freq(ctrl.freq);
+            m_cv1 = ctrl.cv1;
+            m_cv2 = ctrl.cv2;
+            m_cv3 = ctrl.cv3;
+        }
     }
 
     // imodel
@@ -111,10 +95,13 @@ struct channel_t: public imodel
         switch (m_prog)
         {
             case pg_freqmod:    m_freqmod.generate(ctrl, buf, n, stride); break;
+/*
             case pg_classic:    m_classic.generate(ctrl, buf, n, stride); break;
             case pg_kick:       m_kick.generate(ctrl, buf, n, stride); break;
             case pg_snare:      m_snare.generate(ctrl, buf, n, stride); break;
             case pg_hihat:      m_hihat.generate(ctrl, buf, n, stride); break;
+            case pg_calib:      m_calib.generate(ctrl, buf, n, stride); break;
+*/
             default: ;
         }
     }
@@ -124,10 +111,13 @@ struct channel_t: public imodel
         switch (m_prog)
         {
             case pg_freqmod:    m_freqmod.trigger(rise); break;
+/*
             case pg_classic:    m_classic.trigger(rise); break;
             case pg_kick:       m_kick.trigger(rise); break;
             case pg_snare:      m_snare.trigger(rise); break;
             case pg_hihat:      m_hihat.trigger(rise); break;
+            case pg_calib:      m_calib.trigger(rise); break;
+*/
             default: ;
         }
     }
@@ -140,121 +130,68 @@ struct channel_t: public imodel
     intbox                  m_transpose;
     floatbox                m_tuning;
     vertical_t<DISPLAY>     m_column;
-    border_t<DISPLAY>       m_frame;
     voct_t                  m_voct;
-    freqmod_t<DISPLAY>      m_freqmod;
+    freqmod_t<CH, DISPLAY>  m_freqmod;
+/*
     classic_t<DISPLAY>      m_classic;
     kick_t<DISPLAY>         m_kick;
     snare_t<DISPLAY>        m_snare;
     hihat_t<DISPLAY>        m_hihat;
+    calib_t<DISPLAY>        m_calib;
+*/
+    const bool&             m_quiet;
 };
 
 template<typename DISPLAY>
-struct gui_t
+struct gui_t: window_t<DISPLAY>
 {
-    typedef valuebox_t<DISPLAY, show_percent<1> > pctbox;
     enum state_t { navigating, editing, prog_a, prog_b };
 
-    void setup()
+    gui_t(const theme_t& t)
+        : channel_a(t, quiet)
+        , channel_b(t, quiet)
+        , load(t)
+        , inner(&channel_a, &channel_b)
+        , panel(&inner, &load)
     {
-        const fontlib::font_t& font = fontlib::cmunvt_28;
+        list<ifocus*> navigation = channel_a.navigation();
 
-        channel_a.setup(&quiet);
-        channel_b.setup(&quiet);
-        load.setup(font, gold, dark_bg, 0.0f, &quiet);
-        inner.setup();
-        inner.append(&channel_a.m_frame);
-        inner.append(&channel_b.m_frame);
-        panel.setup();
-        panel.append(&inner);
-        panel.append(&load);
-        panel.constrain(10, 240, 10, 480); // FIXME: LAYOUT HACK! & what about zero min?
-        panel.layout(0, 0);
-        navigation = channel_a.navigation();
         navigation.splice(navigation.end(), channel_b.navigation());
-        focus = navigation.begin();
-        (*focus)->focus(normal_cursor);
         quiet = false;
+        window_t<DISPLAY>::setup(&panel, navigation, t);
     }
 
-    void render()
+    virtual void render()
     {
-        DISPLAY::clear();
-        switch (state)
-        {
-            case prog_a: quiet = true; channel_a.prog_render(); break;
-            case prog_b: quiet = true; channel_b.prog_render(); break;
-            default: quiet = false; panel.render();
-        }
+        quiet = false;
+        window_t<DISPLAY>::render();
     }
 
-    void handle_message(const message_t& m)
+    virtual action_t handle_message(const message_t& m)
     {
-        switch (state)
-        {
-            case prog_a:
-                if (!channel_a.prog_handle_message(m))
-                {
-                    state = navigating;
-                    quiet = false;
-                    panel.render();
-                }
-                return;
-            case prog_b:
-                if (!channel_b.prog_handle_message(m))
-                {
-                    state = navigating;
-                    quiet = false;
-                    panel.render();
-                }
-                return;
-            default: ;
-        }
-
         switch (m.index())
         {
         case button_press:
             switch (std::get<button_press>(m))
             {
-            case 0: // encoder button
-                state = state == navigating ? editing : navigating;
-                (*focus)->focus(state == editing ? active_cursor : normal_cursor);
-                break;
-            case 1: // top-left
-                state = prog_a;
-                render();
-                break;
-            case 2: // bottom-left
-                break;
-            case 3: // top-right
-                state = prog_b;
-                render();
-                break;
-            case 4: // bottom-right
-                break;
-            default: ;  // unhandled button
+            case 0:
+                quiet = true;
+                return action_t().emplace<push_window>(channel_a.program());
+            case 2:
+                quiet = true;
+                return action_t().emplace<push_window>(channel_b.program());
+            default:
+                ; // fall through to this window handler
             }
-            break;
-        case encoder_delta:
-            if (state == navigating)
-            {
-                int dir = std::get<encoder_delta>(m);
-
-                (*focus)->defocus();
-                if (dir > 0 && ++focus == navigation.end())
-                    focus = navigation.begin();
-                else if (dir < 0 && --focus == navigation.end())
-                    --focus;
-                (*focus)->focus(normal_cursor);
-            }
-            else
-                (*focus)->edit(std::get<encoder_delta>(m));
-            break;
-        default: ;      // unhandled message
+        default:
+            return window_t<DISPLAY>::handle_message(m);
         }
     }
 
-    channel_t<DISPLAY>      channel_a, channel_b;
+    using pctbox = valuebox_t<DISPLAY, show_percent<1>>;
+
+    channel_t<A, DISPLAY>   channel_a;
+    channel_t<B, DISPLAY>   channel_b;
     pctbox                  load;
     horizontal_t<DISPLAY>   inner;
     vertical_t<DISPLAY>     panel;

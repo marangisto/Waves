@@ -116,23 +116,26 @@ void setup()
     led3::setup();
     led4::setup();
 
+    bdeca.setup();
+    bdecb.setup();
+
+    tft::setup<spi::fpclk_8>(black);
+}
+
+void start_io()
+{
     interrupt::enable();
 
     aux_tim::setup(10 - 1, sys_clock::freq() / 10000 - 1);  // 1kHz
     aux_tim::update_interrupt_enable();
     hal::nvic<interrupt::TIM7>::enable();
 
-    tft::setup<spi::fpclk_8>(dark_red);
-    pen_t<tft>(yellow).circle(119, 119, 100);
     vrefbuf::vrefbuf_t::setup<vrs_2900>();
 
     dacdma::setup();
     dacdma::test_signal();
 
     analog::setup();
-
-    bdeca.setup();
-    bdecb.setup();
 }
 
 } // namespace board
@@ -148,16 +151,16 @@ template<> void handler<interrupt::TIM7>()
     encoder_btn::update();
 
     if (encoder_btn::read())
-        mq::put(m.emplace<button_press>(0));
+        mq::put(m.emplace<encoder_press>(unit));
 
     uint8_t ba = bdeca.decode(reada<4>());
     uint8_t bb = bdecb.decode(readb<4>());
 
     if (ba)
-        mq::put(m.emplace<button_press>(ba));
+        mq::put(m.emplace<button_press>(ba - 1));   // 0 or 1
 
     if (bb)
-        mq::put(m.emplace<button_press>(bb + 2));
+        mq::put(m.emplace<button_press>(bb + 1));   // 2 or 3
 
     int16_t c = static_cast<int16_t>(encoder::count()) >> 1;
 

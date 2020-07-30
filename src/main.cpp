@@ -72,8 +72,6 @@ template<> void handler<interrupt::DMA2_CH1>()
 
 int main()
 {
-    static gui_t<board::tft> gui;
-
     dac_tim::setup(170, 0xffff);
 
     board::dacdma::set_left_gen(fa);
@@ -82,19 +80,30 @@ int main()
     board::setup();
     sys_tick::delay_ms(250);
 
+    static theme_t theme =
+        { yellow
+        , blue // grey(48)
+        , black
+        , yellow
+        , orange_red
+        , fontlib::cmunss_28
+        , false
+        };
+
+    static gui_t<board::tft> gui(theme);
+
+    model_a = &gui.channel_a;
+    model_b = &gui.channel_b;
+
+    board::start_io();
     triga::enable_interrupt<falling_edge>();
     trigb::enable_interrupt<falling_edge>();
     hal::nvic<interrupt::EXTI15_10>::enable();
     hal::nvic<interrupt::DMA2_CH1>::enable();
 
-    gui.setup();
-    gui.render();
-
-    model_a = &gui.channel_a;
-    model_b = &gui.channel_b;
-
     setup_cordic();
 
+    window_manager wm(&gui);
     message_t m;
 
     while (mq::get(m));     // ignore message noise
@@ -102,7 +111,7 @@ int main()
     for (;;)
     {
         if (mq::get(m))
-            gui.handle_message(m);
+            wm.handle_message(m);
 
         ctrl_t ctrl;
 

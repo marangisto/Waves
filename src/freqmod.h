@@ -4,33 +4,21 @@
 #include <list.h>
 
 template<typename DISPLAY>
-struct operator_t
+struct operator_t: border_t<DISPLAY>
 {
     typedef valuebox_t<DISPLAY, show_int> intlabel;
     typedef valuebox_t<DISPLAY, show_float<2>, edit_float<1> > floatbox;
 
-    void setup(uint8_t i)
+    operator_t(const theme_t& t, uint8_t i)
+        : border_t<DISPLAY>(&m_column)
+        , m_opno(t, i)
+        , m_ratio(t, 1.0f)
+        , m_index(t, 2.0f)
+        , m_attack(t, 1.0f)
+        , m_decay(t, 8.0f)
+        , m_column(&m_opno, &m_ratio, &m_index, &m_attack, &m_decay)
     {
-        const fontlib::font_t& font = fontlib::cmunvt_28;
-
-        m_opno.setup(font, dark_fg, dark_bg, i);
-        m_ratio.setup(font, normal_fg, normal_bg, 1.0f);
-        m_index.setup(font, normal_fg, normal_bg, 2.0f);
-        m_attack.setup(font, normal_fg, normal_bg, 1.0f);
-        m_decay.setup(font, normal_fg, normal_bg, 8.0f);
-        m_column.setup();
-        m_column.append(&m_opno);
-        m_column.append(&m_ratio);
-        m_column.append(&m_index);
-        m_column.append(&m_attack);
-        m_column.append(&m_decay);
-        m_frame.setup(&m_column, dim_gray);
         m_carrier.setup(440.0f);
-    }
-
-    void render()
-    {
-        m_frame.render();
     }
 
     list<ifocus*> navigation()
@@ -70,37 +58,24 @@ struct operator_t
     floatbox                                m_attack;
     floatbox                                m_decay;
     vertical_t<DISPLAY>                     m_column;
-    border_t<DISPLAY>                       m_frame;
     signal_generator_t<sine, SAMPLE_FREQ>   m_carrier;
     ad_envelope_t<SAMPLE_FREQ>              m_envelope;
 };
 
 template<typename DISPLAY>
-struct oplabels_t
+struct oplabels_t: border_t<DISPLAY>
 {
     typedef valuebox_t<DISPLAY, show_str> label;
 
-    void setup()
+    oplabels_t(const theme_t& t)
+        : border_t<DISPLAY>(&m_column)   // FIXME: color?
+        , m_opno(t, "op no")
+        , m_ratio(t, "ratio")
+        , m_index(t, "index")
+        , m_attack(t, "attack")
+        , m_decay(t, "decay")
+        , m_column(&m_opno, &m_ratio, &m_index, &m_attack, &m_decay)
     {
-        const fontlib::font_t& font = fontlib::cmunvt_28;
-
-        m_opno.setup(font, dark_fg, dark_bg, "op no");
-        m_ratio.setup(font, alternate_fg, alternate_bg, "ratio");
-        m_index.setup(font, alternate_fg, alternate_bg, "index");
-        m_attack.setup(font, alternate_fg, alternate_bg, "attack");
-        m_decay.setup(font, alternate_fg, alternate_bg, "decay");
-        m_column.setup();
-        m_column.append(&m_opno);
-        m_column.append(&m_ratio);
-        m_column.append(&m_index);
-        m_column.append(&m_attack);
-        m_column.append(&m_decay);
-        m_frame.setup(&m_column, dim_gray);
-    }
-
-    void render()
-    {
-        m_frame.render();
     }
 
     label               m_opno;
@@ -109,105 +84,68 @@ struct oplabels_t
     label               m_attack;
     label               m_decay;
     vertical_t<DISPLAY> m_column;
-    border_t<DISPLAY>   m_frame;
 };
 
-template<typename DISPLAY, int DIM>
-struct matrix_t
-{
-    typedef valuebox_t<DISPLAY, show_float<0>, edit_float<1> > floatbox;
-
-    void setup()
-    {
-        const fontlib::font_t& font = fontlib::cmunvt_28;
-
-        for (uint8_t c = 0; c < DIM; ++c)
-        {
-            m_col[c].setup();
-            for (uint8_t r = 0; r < DIM; ++r)
-            {
-                m_element[c][r].setup(font, dark_fg, dark_bg, 0.0f);
-                m_col[c].append(&m_element[c][r]);
-            }
-            m_panel.append(&m_col[c]);
-        }
-        m_frame.setup(&m_panel, dim_gray);
-    }
-
-    void render()
-    {
-        m_frame.render();
-    }
-
-    list<ifocus*> navigation()
-    {
-        list<ifocus*> l;
-
-        for (uint8_t c = 0; c < DIM; ++c)
-            for (uint8_t r = 0; r < DIM; ++r)
-                l.push_back(&m_element[c][r]);
-        return l;
-    }
-
-    floatbox                                m_element[DIM][DIM];
-    vertical_t<DISPLAY>                     m_col[DIM];
-    horizontal_t<DISPLAY>                   m_panel;
-    border_t<DISPLAY>                       m_frame;
-};
-
-template<typename DISPLAY>
-struct freqmod_t: public screen_t<DISPLAY>, public imodel
+template<ch_t CH, typename DISPLAY>
+struct freqmod_t: window_t<DISPLAY>, imodel
 {
     enum state_t { navigating, editing };
     static constexpr uint8_t num_ops = 2;
     typedef valuebox_t<DISPLAY, show_str> label;
 
-    void setup()
+    freqmod_t(const theme_t& t)
+        : m_labels(t)
+        , m_op0(t, 0)
+        , m_op1(t, 1)
+        , m_panel(&m_labels, &m_op0, &m_op1)
     {
-        m_panel.setup();
-        m_labels.setup();
-        m_panel.append(&m_labels.m_frame);
-
         list<ifocus*> navigation;
 
-        for (uint8_t i = 0; i < num_ops; ++i)
+        navigation.splice(navigation.end(), m_op0.navigation());
+        navigation.splice(navigation.end(), m_op1.navigation());
+
+        window_t<DISPLAY>::setup(&m_panel, navigation, t);
+    }
+
+    virtual action_t handle_message(const message_t& m)
+    {
+        if (m.index() == button_press)
         {
-            m_ops[i].setup(i);
-            m_panel.append(&m_ops[i].m_frame);
-            navigation.splice(navigation.end(), m_ops[i].navigation());
+            uint8_t i = std::get<button_press>(m);
+
+            if ((CH == A && i == 0) || (CH == B && i == 2))
+                return action_t().emplace<pop_window>(0);
+            else
+                return action_t().emplace<pop_window_message>(m);
         }
-
-        m_matrix.setup();
-        navigation.splice(navigation.end(), m_matrix.navigation());
-
-        m_screen.setup();
-        m_screen.append(&m_panel);
-        m_screen.append(&m_matrix.m_frame);
-
-        screen_t<DISPLAY>::setup(&m_screen, navigation, normal_cursor, active_cursor);
+        else
+            return window_t<DISPLAY>::handle_message(m);
     }
 
     // imodel
 
     virtual void generate(ctrl_t& ctx, int32_t *buf, uint16_t n, uint8_t stride)
     {
-        for (uint8_t i = 0; i < num_ops; ++i)
-            m_ops[i].update(ctx.freq);
+        m_op0.update(ctx.freq);
+        m_op1.update(ctx.freq);
+
         for (uint16_t i = 0; i < n; ++i, buf += stride)
-            *buf = board::dacdma::swap(m_ops[0].sample(m_ops[1].sample()).q);
+            *buf = board::dacdma::swap(m_op0.sample(m_op1.sample()).q);
     }
 
     virtual void trigger(bool rise)
     {
         if (rise)
-            for (uint8_t i = 0; i < num_ops; ++i)
-                m_ops[i].trigger();
+        {
+            m_op0.trigger();
+            m_op1.trigger();
+        }
     }
 
     oplabels_t<DISPLAY>         m_labels;
-    operator_t<DISPLAY>         m_ops[num_ops];
+    operator_t<DISPLAY>         m_op0;
+    operator_t<DISPLAY>         m_op1;
     horizontal_t<DISPLAY>       m_panel;
     vertical_t<DISPLAY>         m_screen;
-    matrix_t<DISPLAY, num_ops>  m_matrix;
 };
 
