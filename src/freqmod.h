@@ -13,7 +13,7 @@ struct operator_t: border_t<DISPLAY>
         : border_t<DISPLAY>(&m_column)
         , m_opno(t, i)
         , m_ratio(t, 1.0f)
-        , m_index(t, 2.0f)
+        , m_index(t, 8.0f)
         , m_attack(t, 1.0f)
         , m_decay(t, 8.0f)
         , m_column(&m_opno, &m_ratio, &m_index, &m_attack, &m_decay)
@@ -105,6 +105,10 @@ struct freqmod_t: window_t<DISPLAY>, imodel
         navigation.splice(navigation.end(), m_op1.navigation());
 
         window_t<DISPLAY>::setup(&m_panel, navigation, t);
+
+        m_op0.m_decay = 25.0f;
+        m_op1.m_ratio = 3.0f;
+        m_op1.m_attack = 0.0f;
     }
 
     virtual action_t handle_message(const message_t& m)

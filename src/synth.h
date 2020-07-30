@@ -32,7 +32,7 @@ enum scale_t
 
 static inline float cv2midi(float cv)
 {
-    return 12.0 * cv + 69.0f;
+    return 12.0 * cv + 57.0f;
 }
 
 static inline float freq2midi(float f)
