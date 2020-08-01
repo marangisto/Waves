@@ -2,7 +2,7 @@
 
 #include <list.h>
 #include "utils.h"
-#include "control.h"
+#include "types.h"
 #include "freqmod.h"
 //#include "classic.h"
 //#include "kick.h"

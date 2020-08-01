@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <fixed.h>
 #include <math.h>
-#include "control.h"
+#include "types.h"
 
 namespace synth
 {

@@ -3,6 +3,9 @@
 #include "signal.h"
 #include <list.h>
 
+template<ch_t CH>
+extern void set_calibration(float x0, float k);
+
 template<ch_t CH, typename DISPLAY>
 struct calib_t: window_t<DISPLAY>, imodel
 {
@@ -11,9 +14,11 @@ struct calib_t: window_t<DISPLAY>, imodel
 
     calib_t(const theme_t& t)
         : m_count(t, 0)
-        , m_freq0(t, 0.0)
-        , m_freq1(t, 0.0)
-        , m_panel(&m_count, &m_freq0, &m_freq1)
+        , m_adcl(t, 0.0)
+        , m_adch(t, 0.0)
+        , m_x0(t, 0.0)
+        , m_k(t, 0.0)
+        , m_panel(&m_count, &m_adcl, &m_adch, &m_x0, &m_k)
         , m_visible(false)
     {
         list<ifocus*> navigation;
@@ -35,11 +40,19 @@ struct calib_t: window_t<DISPLAY>, imodel
         {
         case aux_data:
             if (m_count & 0x1)
-                m_freq0 = m_odd / nsamples;
+                m_adcl = m_odd / nsamples;
             else
-                m_freq1 = m_even / nsamples;
+                m_adch = m_even / nsamples;
             if (m_count == nsamples * 2)
+            {
                 m_state = finish;
+
+                float xl = m_adcl < m_adch ? m_adcl : m_adch;
+                float xh = m_adch > m_adcl ? m_adch : m_adcl;
+
+                m_x0 = 0.25 * (3.0 * xh + xl);
+                m_k = 3.0 / (m_x0 - xl);
+            }
             else
                 m_count = m_count + 1;
             return action<no_action>(unit);
@@ -52,7 +65,13 @@ struct calib_t: window_t<DISPLAY>, imodel
                                  : action<pop_window_message>(m)
                                  ;
             case 1:
-                m_state = counting;
+                if (m_state == start)
+                    m_state = counting;
+                else if (m_state == finish)
+                {
+                    calibration<CH>::set(m_x0, m_k);
+                    reset();
+                }
                 return action<no_action>(unit);
             case 2:
                 m_visible = false;
@@ -73,7 +92,7 @@ struct calib_t: window_t<DISPLAY>, imodel
     {
         if (m_capture && hal::sys_tick::count() > m_now + 20)
         {
-            ((m_count & 0x1) ? m_odd : m_even) += ctx.freq;
+            ((m_count & 0x1) ? m_odd : m_even) += ctx.adc0;
             m_capture = false;
         }
     }
@@ -92,18 +111,22 @@ struct calib_t: window_t<DISPLAY>, imodel
     {
         m_state = start;
         m_count = 0;
-        m_freq0 = m_freq1 = 0.0;
+        m_adcl = m_adch = 0.0;
+        m_x0 = m_k = 0.0;
         m_odd = m_even = 0.0;
         m_capture = false;
         m_now = 0;
     }
 
     using intbox = valuebox_t<DISPLAY, show_int>;
-    using freqbox = valuebox_t<DISPLAY, show_float<4>>;
+    using floatbox = valuebox_t<DISPLAY, show_float<2>>;
+    using floatbox8 = valuebox_t<DISPLAY, show_float<8>>;
 
     intbox              m_count;
-    freqbox             m_freq0;
-    freqbox             m_freq1;
+    floatbox            m_adcl;
+    floatbox            m_adch;
+    floatbox            m_x0;
+    floatbox8           m_k;
     vertical_t<DISPLAY> m_panel;
     bool                m_visible;
     state_t             m_state;
