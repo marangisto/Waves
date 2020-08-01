@@ -38,11 +38,19 @@ struct calib_t: window_t<DISPLAY>, imodel
         , m_x0(t, 0.0)
         , m_k(t, 0.0)
         , m_panel(&m_count, &m_adcl, &m_adch, &m_x0, &m_k)
+        , m_frame(&m_panel, t.border_color, 2)
         , m_visible(false)
     {
         list<ifocus*> navigation;
+        uint16_t h = m_panel.count() * t.font.line_spacing() + 4;
 
-        window_t<DISPLAY>::setup(&m_panel, navigation, t);
+        window_t<DISPLAY>::setup
+            ( &m_frame
+            , navigation
+            , t
+            , rect_t(50, (240 - h) >> 1, 140, h)
+            );
+
         reset();
     }
 
@@ -143,6 +151,7 @@ struct calib_t: window_t<DISPLAY>, imodel
     floatbox            m_x0;
     floatbox8           m_k;
     vertical_t<DISPLAY> m_panel;
+    border_t<DISPLAY>   m_frame;
     bool                m_visible;
     state_t             m_state;
     float               m_odd;

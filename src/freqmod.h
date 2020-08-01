@@ -78,6 +78,11 @@ struct oplabels_t: border_t<DISPLAY>
     {
     }
 
+    uint16_t height(const theme_t& t) const
+    {
+        return m_column.count() * t.font.line_spacing() + 2;
+    }
+
     label               m_opno;
     label               m_ratio;
     label               m_index;
@@ -97,13 +102,21 @@ struct freqmod_t: window_t<DISPLAY>, imodel
         , m_op0(t, 0)
         , m_op1(t, 1)
         , m_panel(&m_labels, &m_op0, &m_op1)
+        , m_frame(&m_panel, t.border_color, 2)
     {
         list<ifocus*> navigation;
 
         navigation.splice(navigation.end(), m_op0.navigation());
         navigation.splice(navigation.end(), m_op1.navigation());
 
-        window_t<DISPLAY>::setup(&m_panel, navigation, t);
+        uint16_t h = m_labels.height(t) + 4;
+
+        window_t<DISPLAY>::setup
+            ( &m_frame
+            , navigation
+            , t
+            , rect_t(5, (240 - h) >> 1, 230, h)
+            );
 
         m_op0.m_decay = 25.0f;
         m_op1.m_ratio = 3.0f;
@@ -149,6 +162,6 @@ struct freqmod_t: window_t<DISPLAY>, imodel
     operator_t<DISPLAY>         m_op0;
     operator_t<DISPLAY>         m_op1;
     horizontal_t<DISPLAY>       m_panel;
-    vertical_t<DISPLAY>         m_screen;
+    border_t<DISPLAY>           m_frame;
 };
 
