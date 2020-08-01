@@ -2,9 +2,9 @@
 
 #include <stdlib.h>
 #include <timer.h>
+#include <pulse.h>
 #include <button.h>
 #include <vrefbuf.h>
-#include <gpio.h>
 #include <i2s.h>
 #include <st7789.h>
 #include <draw.h>
@@ -47,10 +47,10 @@ typedef encoder_t<4, PB6, PB7> encoder;
 typedef button_t<PB9> encoder_btn;
 typedef analog_t<PA4> btnsa;
 typedef analog_t<PB14> btnsb;
-typedef output_t<PB10> led1;
-typedef output_t<PB2> led2;
-typedef output_t<PA12> led3;
-typedef output_t<PC14> led4;
+typedef pulse_t<PB10> led1;
+typedef pulse_t<PB2> led2;
+typedef pulse_t<PA12> led3;
+typedef pulse_t<PC14> led4;
 
 // peripherals
 
@@ -169,5 +169,10 @@ template<> void handler<interrupt::TIM7>()
         mq::put(m.emplace<encoder_delta>(encoder_last_count - c));
         encoder_last_count = c;
     }
+
+    led1::update();
+    led2::update();
+    led3::update();
+    led4::update();
 }
 

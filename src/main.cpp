@@ -25,14 +25,14 @@ template<> void handler<interrupt::EXTI15_10>()
     {
         if (model_a)
             model_a->trigger();
-        led1::toggle();
+        led1::pulse(25);
     }
 
     if (bb)
     {
         if (model_b)
             model_b->trigger();
-        led2::toggle();
+        led3::pulse(25);
     }
 
     if (ba)

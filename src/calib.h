@@ -6,6 +6,25 @@
 template<ch_t CH>
 extern void set_calibration(float x0, float k);
 
+template<ch_t>
+struct calib_traits {};
+
+template<>
+struct calib_traits<A>
+{
+    static constexpr uint8_t btn_exit = 0;
+    static constexpr uint8_t btn_calib = 1;
+    static constexpr uint8_t btn_swap = 2;
+};
+
+template<>
+struct calib_traits<B>
+{
+    static constexpr uint8_t btn_exit = 2;
+    static constexpr uint8_t btn_calib = 3;
+    static constexpr uint8_t btn_swap = 0;
+};
+
 template<ch_t CH, typename DISPLAY>
 struct calib_t: window_t<DISPLAY>, imodel
 {
@@ -59,12 +78,10 @@ struct calib_t: window_t<DISPLAY>, imodel
         case button_press:
             switch (std::get<button_press>(m))
             {
-            case 0:
+            case calib_traits<CH>::btn_exit:
                 m_visible = false;
-                return (CH == A) ? action<pop_window>(0)
-                                 : action<pop_window_message>(m)
-                                 ;
-            case 1:
+                return action<pop_window>(0);
+            case calib_traits<CH>::btn_calib:
                 if (m_state == start)
                     m_state = counting;
                 else if (m_state == finish)
@@ -73,11 +90,9 @@ struct calib_t: window_t<DISPLAY>, imodel
                     reset();
                 }
                 return action<no_action>(unit);
-            case 2:
+            case calib_traits<CH>::btn_swap:
                 m_visible = false;
-                return (CH == B) ? action<pop_window>(0)
-                                 : action<pop_window_message>(m)
-                                 ;
+                return action<pop_window_message>(m);
             default:
                 return action<no_action>(unit);
             }
