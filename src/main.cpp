@@ -81,13 +81,13 @@ int main()
     sys_tick::delay_ms(250);
 
     static theme_t theme =
-        { yellow
-        , blue // grey(48)
-        , black
-        , yellow
-        , orange_red
-        , fontlib::cmunss_28
-        , false
+        { white                 // primary font color
+        , grey(48)              // normal background
+        , black                 // border color
+        , yellow                // cursor color
+        , orange_red            // editor color
+        , fontlib::cmunss_28    // standard font
+        , false                 // don't be quiet
         };
 
     static gui_t<board::tft> gui(theme);
