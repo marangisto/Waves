@@ -1,4 +1,0 @@
-BASE_DIR=../..
-MCU=STM32G431
-LIBS=hal st7789 fontlib
-DEFS=HSE=8000000
