@@ -15,9 +15,9 @@ struct operator_t: border_t<DISPLAY>
         , m_ratio(t, 1.0f)
         , m_index(t, 10.0f)
         , m_attack(t, 1.0f)
-        , m_decay(t, 25.0f)
-        , m_sustain(t, 90.0f)
-        , m_release(t, 8.0f)
+        , m_decay(t, 8.0f)
+        , m_sustain(t, 85.0f)
+        , m_release(t, 20.0f)
         , m_column
             ( &m_opno
             , &m_ratio

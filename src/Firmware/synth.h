@@ -260,8 +260,8 @@ public:
                 m_y = q31_t(0l);
                 m_state = stop;
             }
-            else if (m_y < m_sy && m_gate)
-                m_state = sustain;
+            else if (m_y < m_sy)
+                m_state = m_gate ? sustain : release;
             else
                 m_y = m_y - m_dd;   // FIXME: -=
             break;
