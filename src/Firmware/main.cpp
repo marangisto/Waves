@@ -22,16 +22,20 @@ template<> void handler<interrupt::EXTI15_10>()
 
     if (ba)
     {
+        bool gate = !triga::read();
+
         if (model_a)
-            model_a->trigger();
-        led1::pulse(25);
+            model_a->trigger(gate);
+        led1::write(gate);
     }
 
     if (bb)
     {
+        bool gate = !trigb::read();
+
         if (model_b)
-            model_b->trigger();
-        led3::pulse(25);
+            model_b->trigger(gate);
+        led3::write(gate);
     }
 
     if (ba)
@@ -95,8 +99,8 @@ int main()
     model_b = &gui.channel_b;
 
     board::start_io();
-    triga::enable_interrupt<falling_edge>();
-    trigb::enable_interrupt<falling_edge>();
+    triga::enable_interrupt<both_edges>();
+    trigb::enable_interrupt<both_edges>();
     interrupt::set<interrupt::EXTI15_10>();
     interrupt::set<interrupt::DMA2_CH1>();
 
