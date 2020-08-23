@@ -13,10 +13,20 @@ struct operator_t: border_t<DISPLAY>
         : border_t<DISPLAY>(&m_column)
         , m_opno(t, i)
         , m_ratio(t, 1.0f)
-        , m_index(t, 8.0f)
+        , m_index(t, 10.0f)
         , m_attack(t, 1.0f)
-        , m_decay(t, 8.0f)
-        , m_column(&m_opno, &m_ratio, &m_index, &m_attack, &m_decay)
+        , m_decay(t, 25.0f)
+        , m_sustain(t, 90.0f)
+        , m_release(t, 8.0f)
+        , m_column
+            ( &m_opno
+            , &m_ratio
+            , &m_index
+            , &m_attack
+            , &m_decay
+            , &m_sustain
+            , &m_release
+            )
     {
         m_carrier.setup(440.0f);
     }
@@ -29,6 +39,8 @@ struct operator_t: border_t<DISPLAY>
         l.push_back(&m_index);
         l.push_back(&m_attack);
         l.push_back(&m_decay);
+        l.push_back(&m_sustain);
+        l.push_back(&m_release);
         return l;
     }
 
@@ -45,11 +57,17 @@ struct operator_t: border_t<DISPLAY>
     }
 
     __attribute__((always_inline))
-    inline void trigger()
+    inline void trigger(bool gate)
     {
-        m_envelope.set_a(m_attack * 0.01f);    // FIXME: curve control
-        m_envelope.set_d(m_decay * 0.1f);      // FIXME: curve control
-        m_envelope.trigger();
+        if (gate)
+        {
+            m_envelope.set_a(m_attack * 0.01f);    // FIXME: curve control
+            m_envelope.set_d(m_decay * 0.1f);      // FIXME: curve control
+            m_envelope.set_s(m_sustain * 0.01f);   // FIXME: curve control
+            m_envelope.set_r(m_release * 0.1f);    // FIXME: curve control
+        }
+
+        m_envelope.trigger(gate);
     }
 
     intlabel                                m_opno;
@@ -57,9 +75,11 @@ struct operator_t: border_t<DISPLAY>
     floatbox                                m_index;
     floatbox                                m_attack;
     floatbox                                m_decay;
+    floatbox                                m_sustain;
+    floatbox                                m_release;
     vertical_t<DISPLAY>                     m_column;
     signal_generator_t<sine, SAMPLE_FREQ>   m_carrier;
-    ad_envelope_t<SAMPLE_FREQ>              m_envelope;
+    adsr_envelope_t<SAMPLE_FREQ>            m_envelope;
 };
 
 template<typename DISPLAY>
@@ -74,7 +94,17 @@ struct oplabels_t: border_t<DISPLAY>
         , m_index(t, "index")
         , m_attack(t, "attack")
         , m_decay(t, "decay")
-        , m_column(&m_opno, &m_ratio, &m_index, &m_attack, &m_decay)
+        , m_sustain(t, "sustain")
+        , m_release(t, "release")
+        , m_column
+          ( &m_opno
+          , &m_ratio
+          , &m_index
+          , &m_attack
+          , &m_decay
+          , &m_sustain
+          , &m_release
+          )
     {
     }
 
@@ -88,6 +118,8 @@ struct oplabels_t: border_t<DISPLAY>
     label               m_index;
     label               m_attack;
     label               m_decay;
+    label               m_sustain;
+    label               m_release;
     vertical_t<DISPLAY> m_column;
 };
 
@@ -118,9 +150,8 @@ struct freqmod_t: window_t<DISPLAY>, imodel
             , rect_t(5, (240 - h) >> 1, 230, h)
             );
 
-        m_op0.m_decay = 25.0f;
         m_op1.m_ratio = 3.0f;
-        m_op1.m_attack = 0.0f;
+        m_op1.m_decay = 25.0f;
     }
 
     virtual action_t handle_message(const message_t& m)
@@ -149,13 +180,10 @@ struct freqmod_t: window_t<DISPLAY>, imodel
             *buf = board::dacdma::swap(m_op0.sample(m_op1.sample()).q);
     }
 
-    virtual void trigger(bool rise)
+    virtual void trigger(bool gate)
     {
-        if (rise)
-        {
-            m_op0.trigger();
-            m_op1.trigger();
-        }
+        m_op0.trigger(gate);
+        m_op1.trigger(gate);
     }
 
     oplabels_t<DISPLAY>         m_labels;

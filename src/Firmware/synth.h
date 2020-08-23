@@ -222,5 +222,86 @@ private:
     q31_t   m_y;
 };
 
+template<uint32_t SAMPLE_FREQ>
+class adsr_envelope_t
+{
+public:
+    enum state_t { stop, attack, decay, sustain, release, open };
+
+    adsr_envelope_t(): m_state(stop) {}
+
+    __attribute__((always_inline))
+    void trigger(bool gate)
+    {
+        if (gate)   // rising edge
+            m_state = m_da.q == one.q && m_dd.q == one.q ? open : attack;
+        else if (m_state == decay || m_state == sustain)
+            m_state = release;
+        m_gate = gate;
+    }
+
+    __attribute__((always_inline))
+    inline q31_t sample()
+    {
+        switch (m_state)
+        {
+        case attack:
+            if (q31_t::max_val - m_y < m_da)
+            {
+                m_y = q31_t::max_val;
+                m_state = decay;
+            }
+            else
+                m_y = m_y + m_da;   // FIXME: +=
+            break;
+        case decay:
+            if (m_y < m_dd)
+            {
+                m_y = q31_t(0l);
+                m_state = stop;
+            }
+            else if (m_y < m_sy && m_gate)
+                m_state = sustain;
+            else
+                m_y = m_y - m_dd;   // FIXME: -=
+            break;
+        case sustain:               // just wait for gate to release
+            break;
+        case release:
+            if (m_y < m_dr)
+            {
+                m_y = q31_t(0l);
+                m_state = stop;
+            }
+            else
+                m_y = m_y - m_dr;   // FIXME: -=
+            break;
+        case stop:
+            break;
+        case open:
+            m_y = q31_t(0.99f);
+            break;
+        }
+
+        return m_y;
+    }
+
+    void set_a(float a) { m_da = a > 0.0f ? q31_t(1.0f / (a * SAMPLE_FREQ)) : one; }
+    void set_d(float d) { m_dd = d > 0.0f ? q31_t(1.0f / (d * SAMPLE_FREQ)) : one; }
+    void set_s(float s) { m_sy = q31_t(s); }
+    void set_r(float r) { m_dr = r > 0.0f ? q31_t(1.0f / (r * SAMPLE_FREQ)) : one; }
+
+private:
+    static constexpr q31_t one = q31_t::max_val;
+
+    state_t m_state;
+    bool    m_gate;
+    q31_t   m_da;
+    q31_t   m_dd;
+    q31_t   m_sy;
+    q31_t   m_dr;
+    q31_t   m_y;
+};
+
 } // namespace synth
 
