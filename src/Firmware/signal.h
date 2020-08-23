@@ -7,9 +7,7 @@ using namespace fixed;
 
 void setup_cordic()
 {
-    using namespace hal::cordic;
-
-    cordic_t::setup<cordic_t::sine, 4>();
+    cordic::setup<cordic::sine, 4>();
 }
 
 template<typename WAVEGEN, uint32_t SAMPLE_FREQ>
@@ -50,9 +48,7 @@ struct sine
 {
     inline q31_t value(q31_t phi)
     {
-        using namespace hal::cordic;
-
-        return q31_t(cordic_t::compute(phi.q));
+        return q31_t(cordic::compute(phi.q));
     }
 };
 

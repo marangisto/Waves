@@ -113,7 +113,7 @@ struct calib_t: window_t<DISPLAY>, imodel
 
     virtual void generate(ctrl_t& ctx, int32_t *, uint16_t, uint8_t)
     {
-        if (m_capture && hal::sys_tick::count() > m_now + 20)
+        if (m_capture && sys_tick::count() > m_now + 20)
         {
             ((m_count & 0x1) ? m_odd : m_even) += ctx.adc0;
             m_capture = false;
@@ -124,7 +124,7 @@ struct calib_t: window_t<DISPLAY>, imodel
     {
         if (rise && m_state == counting)
         {
-            m_now = hal::sys_tick::count();
+            m_now = sys_tick::count();
             m_capture = true;
             board::mq::put(message_t().emplace<aux_data>(0));
         }

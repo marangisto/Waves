@@ -9,13 +9,7 @@
 namespace analog
 {
 
-using hal::sys_clock;
-using namespace hal::timer;
-using namespace hal::gpio;
-using namespace hal::adc;
-using namespace hal::dma;
-
-typedef hal::timer::timer_t<3> adc_tim;
+typedef tim_t<3> adc_tim;
 typedef adc_t<1> adc1;
 typedef adc_t<2> adc2;
 typedef dma_t<1> adc_dma;
@@ -64,8 +58,8 @@ void setup()
 {
     adc_tim::setup(1, (sys_clock::freq() >> 1) / adc_sample_freq - 1);
     adc_tim::master_mode<adc_tim::mm_update>();
-    adc_tim::update_interrupt_enable();
-    hal::nvic<interrupt::TIM3>::enable();
+    adc_tim::enable_update_interrupt();
+    interrupt::set<interrupt::TIM3>();
     adc_dma::setup();
  
     adc1::setup<6>();
@@ -86,20 +80,20 @@ void setup()
     adc2::enable();
     adc2::start_conversion();
  
-    device::ADC1.IER |= device::adc1_t::IER_EOSIE; // enable end of sequence interrupt
-    hal::nvic<interrupt::ADC1_2>::enable();
+    adc1::enable_interrupt(adc1::EOS);
+    interrupt::set<interrupt::ADC1_2>();
 }
 
 } // namespace analog
 
 template<> void handler<interrupt::TIM3>()
 {
-    analog::adc_tim::clear_uif();
+    analog::adc_tim::clear_update_interrupt_flag();
 }
 
 template<> void handler<interrupt::ADC1_2>()
 {
-    device::ADC1.ISR |= device::adc1_t::ISR_EOS; // clear end of sequence flag
+    analog::adc1::clear_interrupt_flags(analog::adc1::EOS);
 }
 
 template<ch_t CH> float calibration<CH>::m_x0 = 2745.67;

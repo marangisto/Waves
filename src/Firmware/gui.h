@@ -11,7 +11,7 @@
 #include "calib.h"
 
 template<ch_t CH, typename DISPLAY>
-struct channel_t: border_t<DISPLAY>, imodel
+struct chan_t : border_t<DISPLAY>, imodel
 {
     typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_note> notebox;
@@ -20,7 +20,7 @@ struct channel_t: border_t<DISPLAY>, imodel
     typedef valuebox_t<DISPLAY, show_float<3>, edit_float<1000> > floatbox;
     typedef valuebox_t<DISPLAY, show_scale, edit_scale> scalebox;
 
-    channel_t(const theme_t& t, const bool& quiet)
+    chan_t(const theme_t& t, const bool& quiet)
         : border_t<DISPLAY>(&m_column)
         , m_note(t, 440.0f)
         , m_freq(t, 440.000f)
@@ -192,8 +192,8 @@ struct gui_t: window_t<DISPLAY>
 
     using pctbox = valuebox_t<DISPLAY, show_percent<1>>;
 
-    channel_t<A, DISPLAY>   channel_a;
-    channel_t<B, DISPLAY>   channel_b;
+    chan_t<A, DISPLAY>      channel_a;
+    chan_t<B, DISPLAY>      channel_b;
     pctbox                  load;
     horizontal_t<DISPLAY>   inner;
     vertical_t<DISPLAY>     panel;

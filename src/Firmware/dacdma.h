@@ -16,14 +16,10 @@ class dacdma_t
 {
 public:
     static_assert((NSMPL & 0x1) == 0, "number of samples per channel must be even");
-    typedef hal::dma::dma_t<DMA> dma;
+    typedef dma_t<DMA> dma;
 
     static void setup()
     {
-        using namespace hal::i2s;
-        using namespace hal::dma;
-        using namespace hal::gpio;
-
         dma::setup();
         I2S::template setup<philips_i2s, low_level, format_32_32, 27>();
         I2S::template enable_dma<dma, DMACH>(reinterpret_cast<uint16_t*>(m_buf), NSMPL << 2);
@@ -51,7 +47,6 @@ public:
     inline static void handle_interrupt()
     {
         uint32_t sts = dma::template interrupt_status<DMACH>();
-        using namespace hal::dma;
 
         dma::template clear_interrupt_flags<DMACH>();
 

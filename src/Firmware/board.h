@@ -16,19 +16,13 @@
 namespace board
 {
 
-using hal::sys_clock;
-using namespace hal::vrefbuf;
-using namespace hal::timer;
-using namespace hal::gpio;
-using namespace hal::i2s;
-using namespace st7789;
-using namespace graphics;
-using namespace dacdma;
 using namespace analog;
+using namespace dacdma;
 
-typedef hal::timer::timer_t<7> aux_tim;
+typedef tim_t<7> aux_tim;
 
 // CV inputs
+/*
 typedef analog_t<PA0> cv1a;
 typedef analog_t<PA2> cv2a;
 typedef analog_t<PA3> cv3a;
@@ -37,6 +31,7 @@ typedef analog_t<PA1> cv1b;
 typedef analog_t<PA6> cv2b;
 typedef analog_t<PB11> cv3b;
 typedef analog_t<PB15> cv4b;
+*/
 
 // trigger inputs
 typedef input_t<PC13> trigb;
@@ -45,8 +40,8 @@ typedef input_t<PC15> triga;
 // user controls
 typedef encoder_t<4, PB6, PB7> encoder;
 typedef button_t<PB9> encoder_btn;
-typedef analog_t<PA4> btnsa;
-typedef analog_t<PB14> btnsb;
+//typedef analog_t<PA4> btnsa;
+//typedef analog_t<PB14> btnsb;
 typedef pulse_t<PB10> led1;
 typedef pulse_t<PB2> led2;
 typedef pulse_t<PA12> led3;
@@ -95,6 +90,7 @@ static btns_decoder_t bdeca, bdecb;
 
 void setup()
 {
+    /*
     cv1a::setup();
     cv2a::setup();
     cv3a::setup();
@@ -103,14 +99,17 @@ void setup()
     cv2b::setup();
     cv3b::setup();
     cv4b::setup();
+    */
 
     triga::setup();
     trigb::setup();
 
     encoder::setup<pull_up>(65535);
     encoder_btn::setup<pull_up>();
+    /*
     btnsa::setup();
     btnsb::setup();
+    */
     led1::setup();
     led2::setup();
     led3::setup();
@@ -119,7 +118,7 @@ void setup()
     bdeca.setup();
     bdecb.setup();
 
-    tft::setup<spi::fpclk_8>(black);
+    tft::setup<fpclk_8>(color::black);
 }
 
 void start_io()
@@ -127,10 +126,10 @@ void start_io()
     interrupt::enable();
 
     aux_tim::setup(10 - 1, sys_clock::freq() / 10000 - 1);  // 1kHz
-    aux_tim::update_interrupt_enable();
-    hal::nvic<interrupt::TIM7>::enable();
+    aux_tim::enable_update_interrupt();
+    interrupt::set<interrupt::TIM7>();
 
-    vrefbuf::vrefbuf_t::setup<vrs_2900>();
+    vrefbuf::setup<vrs_2900>();
 
     dacdma::setup();
     dacdma::test_signal();
@@ -147,7 +146,7 @@ template<> void handler<interrupt::TIM7>()
     static int16_t encoder_last_count = 0;
     message_t m;
 
-    aux_tim::clear_uif();
+    aux_tim::clear_update_interrupt_flag();
     encoder_btn::update();
 
     if (encoder_btn::read())

@@ -3,13 +3,12 @@ static const unsigned long SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 
 #include "board.h"
 #include "gui.h"
 
-using hal::sys_tick;
 using namespace board;
 using namespace analog;
 using namespace synth;
 using namespace fixed;
 
-typedef hal::timer::timer_t<2> dac_tim;
+typedef tim_t<2> dac_tim;
 
 static volatile float dac_load = 0.0f;
 
@@ -98,8 +97,8 @@ int main()
     board::start_io();
     triga::enable_interrupt<falling_edge>();
     trigb::enable_interrupt<falling_edge>();
-    hal::nvic<interrupt::EXTI15_10>::enable();
-    hal::nvic<interrupt::DMA2_CH1>::enable();
+    interrupt::set<interrupt::EXTI15_10>();
+    interrupt::set<interrupt::DMA2_CH1>();
 
     setup_cordic();
 
