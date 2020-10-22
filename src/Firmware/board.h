@@ -8,10 +8,10 @@
 #include <i2s.h>
 #include <st7789.h>
 #include <draw.h>
-#include <analog.h>
-#include <dacdma.h>
 #include <fifo.h>
 #include <message.h>
+#include "analog.h"
+#include "dacdma.h"
 
 namespace board
 {
