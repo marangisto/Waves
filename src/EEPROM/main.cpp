@@ -1,12 +1,5 @@
-#include <cstdlib>
-#include <stdlib.h>
-#include <ctype.h>
+#include <waves.h>
 #include <textio.h>
-#include <gpio.h>
-#include <spi.h>
-#include <timer.h>
-#include <st7789.h>
-#include <draw.h>
 #include <text.h>
 #include <hexdump.h>
 #include <at25.h>
@@ -15,9 +8,9 @@ using namespace fontlib;
 using namespace text;
 using namespace color;
 
-using display = st7789_t<1, PA5, PA7, PB1, PB4>;
+using display = board::tft;
 using console = console_t<display>;
-using encoder = encoder_t<4, PB6, PB7>;
+using encoder = board::encoder;
 using eeprom = at25_t<256, spi_t<2, PB13, PA11, PA10>, PB12>;
 
 int main()

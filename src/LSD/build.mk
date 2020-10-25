@@ -1,4 +1,1 @@
-BASE_DIR=../../..
-LIBS=st7789 corona
-MCU=STM32G431CBTx
-DEFS=WAVES
+include ../build.cfg

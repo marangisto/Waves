@@ -4,16 +4,10 @@
 //
 ////
 
-#include <gpio.h>
-#include <spi.h>
-#include <st7789.h>
-#include <draw.h>
-#include <cstdlib>
+#include <waves.h>
 
+using display = board::tft;
 using namespace color;
-
-typedef st7789_t<1, PA5, PA7, PB1, PB4> display;
-static const spi_clock_divider_t display_spi_prescale = fpclk_8;
 
 static void squares()
 {
@@ -43,7 +37,7 @@ static void circles()
 
 int main()
 {
-    display::setup<display_spi_prescale>();
+    board::setup();
 
     for (;;)
     {

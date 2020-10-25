@@ -1,6 +1,6 @@
 static const unsigned long SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
 
-#include "board.h"
+#include <waves.h>
 #include "gui.h"
 
 using namespace board;
