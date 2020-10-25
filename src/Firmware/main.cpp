@@ -99,6 +99,9 @@ int main()
     model_b = &gui.channel_b;
 
     board::start_io();
+    board::start_analog();
+    board::start_dacdma();
+
     triga::enable_interrupt<both_edges>();
     trigb::enable_interrupt<both_edges>();
     interrupt::set<interrupt::EXTI15_10>();
