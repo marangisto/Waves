@@ -7,8 +7,7 @@ using namespace fontlib;
 using namespace text;
 using namespace color;
 
-using display = board::tft;
-using console = console_t<display>;
+using console = console_t<board::tft>;
 using encoder = board::encoder;
 using eeprom = board::eeprom;
 
