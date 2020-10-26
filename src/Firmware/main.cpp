@@ -5,7 +5,6 @@ static const unsigned long SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 
 #include "gui.h"
 
 using namespace board;
-using namespace analog;
 using namespace synth;
 using namespace fixed;
 
@@ -86,7 +85,6 @@ int main()
 
     board::start_io();
     board::start_trigger();
-    board::start_analog();
     board::start_dacdma();
 
     interrupt::set<interrupt::DMA2_CH1>();
