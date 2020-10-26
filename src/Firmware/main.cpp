@@ -1,6 +1,7 @@
 static const unsigned long SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
 
 #include <waves.h>
+#include <trigger.h>
 #include "gui.h"
 
 using namespace board;
@@ -15,33 +16,18 @@ static volatile float dac_load = 0.0f;
 static imodel *model_a = 0;
 static imodel *model_b = 0;
 
-template<> void handler<interrupt::EXTI15_10>()
+void trigger_a(bool gate)
 {
-    bool ba = triga::interrupt_pending();
-    bool bb = trigb::interrupt_pending();
+    if (model_a)
+        model_a->trigger(gate);
+    led1::write(gate);
+}
 
-    if (ba)
-    {
-        bool gate = !triga::read();
-
-        if (model_a)
-            model_a->trigger(gate);
-        led1::write(gate);
-    }
-
-    if (bb)
-    {
-        bool gate = !trigb::read();
-
-        if (model_b)
-            model_b->trigger(gate);
-        led3::write(gate);
-    }
-
-    if (ba)
-        triga::clear_interrupt();
-    if (bb)
-        trigb::clear_interrupt();
+void trigger_b(bool gate)
+{
+    if (model_b)
+        model_b->trigger(gate);
+    led3::write(gate);
 }
 
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
@@ -99,12 +85,10 @@ int main()
     model_b = &gui.channel_b;
 
     board::start_io();
+    board::start_trigger();
     board::start_analog();
     board::start_dacdma();
 
-    triga::enable_interrupt<both_edges>();
-    trigb::enable_interrupt<both_edges>();
-    interrupt::set<interrupt::EXTI15_10>();
     interrupt::set<interrupt::DMA2_CH1>();
 
     setup_cordic();
