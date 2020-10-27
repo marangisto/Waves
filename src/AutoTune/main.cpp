@@ -2,6 +2,7 @@
 #include <trigger.h>
 #include <textio.h>
 #include <text.h>
+#include <algorithm>
 
 using namespace fontlib;
 using namespace text;
@@ -36,9 +37,9 @@ void trigger_b(bool gate)
     }
 }
 
-static unsigned collect_samples(ch_t ch, uint16_t *buf, unsigned n)
+static unsigned collect_samples(ch_t ch, uint16_t *xs, unsigned n)
 {
-    uint32_t start = sys_tick::count();
+    message_t m;
 
     console::set_pos(0, 0);
     printf<console>("waiting...");
@@ -46,29 +47,87 @@ static unsigned collect_samples(ch_t ch, uint16_t *buf, unsigned n)
     for (unsigned i = 0; i < n; ++i)
     {
         while (!(ch == A ? g_trga : g_trgb))
-            if (sys_tick::count() - start > 5000)   // time-out
+            if (board::mq::get(m))              // user aboort
                 return i;
-        buf[i] = ch == A ? g_cva : g_cvb;
+        xs[i] = ch == A ? g_cva : g_cvb;
         (ch == A ? g_trga : g_trgb) = false;
         console::set_pos(0, 0);
-        printf<console>("%3d %5d ", i, g_cva);
+        printf<console>("%3d %5d ", i, xs[i]);
     }
 
     return n;
 }
 
+static unsigned bucketize(uint16_t *xs, unsigned n)
+{
+    std::sort(xs, xs + n);
+
+    const uint16_t buckets = 8;
+    const uint32_t spread = 4095 / (2 * buckets);
+    uint32_t sums[buckets], counts[buckets];
+    uint16_t k = 0;
+
+    for (uint16_t i = 0; i < buckets; ++i)
+        sums[i] = counts[i] = 0;
+
+    sums[0] = xs[0];
+    counts[0] = 1;
+
+    for (uint16_t i = 1; i < n; ++i)
+    {
+        uint32_t avg = sums[k] / counts[k];
+
+        //printf<console>("x[%u] = %u, avg = %u\n", i, xs[i], avg);
+
+        if (xs[i] > avg + spread)
+            ++k;
+
+        if (k == buckets)
+        {
+            printf<console>("overrun x[%u] = %u, avg = %lu\n", i, xs[i], avg);
+            return 0;
+        }
+
+        sums[k] += xs[i];
+        counts[k]++;
+    }
+
+    if (k + 1 != buckets)
+    {
+        printf<console>("underrun, found only %u levels\n", k);
+        return 0;
+    }
+
+    for (uint16_t k = 0; k < buckets; ++k)
+    {
+        uint32_t avg = sums[k] / counts[k];
+        printf<console>("avg[%u] = %lu, count = %lu\n", k, avg, counts[k]);
+    }
+
+    return buckets;
+}
+
 static void calibrate(ch_t ch)
 {
     constexpr unsigned N = 200;
-    static uint16_t buf[N];
+    static uint16_t xs[N];
 
     console::clear();
 
-    unsigned n = collect_samples(ch, buf, N);
+    unsigned n = collect_samples(ch, xs, N);
     message_t m;
 
     console::set_pos(0, 0);
     printf<console>("got %d samples\n", n);
+
+    if (n < N)
+    {
+        printf<console>("not enough samples, try again!\n");
+        while (!board::mq::get(m));
+        return;
+    }
+
+    bucketize(xs, n);
     while (!board::mq::get(m));
 }
 
