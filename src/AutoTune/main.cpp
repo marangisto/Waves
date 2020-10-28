@@ -12,6 +12,8 @@ using console = console_t<board::tft>;
 using encoder = board::encoder;
 //using eeprom = board::eeprom;
 
+static constexpr unsigned OCTAVES = 8;
+
 static volatile uint16_t g_cva = 0, g_cvb = 0;
 static volatile bool g_trga = false, g_trgb = false;
 
@@ -58,16 +60,16 @@ static unsigned collect_samples(ch_t ch, uint16_t *xs, unsigned n)
     return n;
 }
 
-static unsigned bucketize(uint16_t *xs, unsigned n)
+static unsigned bucketize(uint16_t *xs, unsigned n, uint16_t ys[OCTAVES])
 {
     std::sort(xs, xs + n);
 
-    const uint16_t buckets = 8;
-    const uint32_t spread = 4095 / (2 * buckets);
-    uint32_t sums[buckets], counts[buckets];
+    const uint32_t spread = 100;
+    uint32_t sums[OCTAVES];
+    uint16_t counts[OCTAVES];
     uint16_t k = 0;
 
-    for (uint16_t i = 0; i < buckets; ++i)
+    for (uint16_t i = 0; i < OCTAVES; ++i)
         sums[i] = counts[i] = 0;
 
     sums[0] = xs[0];
@@ -82,7 +84,7 @@ static unsigned bucketize(uint16_t *xs, unsigned n)
         if (xs[i] > avg + spread)
             ++k;
 
-        if (k == buckets)
+        if (k == OCTAVES)
         {
             printf<console>("overrun x[%u] = %u, avg = %lu\n", i, xs[i], avg);
             return 0;
@@ -92,19 +94,24 @@ static unsigned bucketize(uint16_t *xs, unsigned n)
         counts[k]++;
     }
 
-    if (k + 1 != buckets)
+    if (k + 1 != OCTAVES)
     {
         printf<console>("underrun, found only %u levels\n", k);
         return 0;
     }
 
-    for (uint16_t k = 0; k < buckets; ++k)
+    printf<console>("no  cnt   prev    avg   chg\n");
+    printf<console>("------------------------------\n");
+
+    for (uint16_t k = 0; k < OCTAVES; ++k)
     {
-        uint32_t avg = sums[k] / counts[k];
-        printf<console>("avg[%u] = %lu, count = %lu\n", k, avg, counts[k]);
+        uint16_t avg = sums[k] / counts[k];
+        int16_t chg = avg - ys[k];
+        printf<console>("%2u  %3u  %5lu  %5lu  %4d\n", k, counts[k], ys[k], avg, chg);
+        ys[k] = avg;
     }
 
-    return buckets;
+    return OCTAVES;
 }
 
 static void calibrate(ch_t ch)
@@ -127,7 +134,9 @@ static void calibrate(ch_t ch)
         return;
     }
 
-    bucketize(xs, n);
+    uint16_t tab[OCTAVES] = { 400, 900, 1300, 1900, 2300, 2770, 3200, 3700 };
+
+    bucketize(xs, n, tab);
     while (!board::mq::get(m));
 }
 
