@@ -4,7 +4,7 @@
 //
 ////
 
-#include <waves.h>
+#include <board.h>
 
 using display = board::tft;
 using namespace color;

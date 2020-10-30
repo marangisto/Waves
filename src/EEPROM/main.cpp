@@ -1,4 +1,4 @@
-#include <waves.h>
+#include <board.h>
 #include <textio.h>
 #include <text.h>
 #include <hexdump.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <waves.h>
+#include <board.h>
 #include <textio.h>
 #include <text.h>
 #include <algorithm>
