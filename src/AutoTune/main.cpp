@@ -1,7 +1,7 @@
 #include <console.h>
 #include <trigger.h>
 
-//using eeprom = board::eeprom;
+using eeprom = board::eeprom;
 
 static constexpr unsigned OCTAVES = 8;
 
@@ -103,6 +103,22 @@ static unsigned bucketize(uint16_t *xs, unsigned n, uint16_t ys[OCTAVES])
     return OCTAVES;
 }
 
+static int load(ch_t ch, uint16_t tab[OCTAVES])
+{
+    const uint16_t size = OCTAVES * sizeof(*tab);
+    const uint16_t addr = ch == B ? size : 0;
+
+    return eeprom::read(addr, reinterpret_cast<char*>(tab), size);
+};
+
+static int save(ch_t ch, const uint16_t tab[OCTAVES])
+{
+    const uint16_t size = OCTAVES * sizeof(*tab);
+    const uint16_t addr = ch == B ? size : 0;
+
+    return eeprom::write(addr, reinterpret_cast<const char*>(tab), size);
+};
+
 static void calibrate(ch_t ch)
 {
     constexpr unsigned N = 200;
@@ -121,10 +137,13 @@ static void calibrate(ch_t ch)
         return;
     }
 
-    uint16_t tab[OCTAVES] = { 400, 900, 1300, 1900, 2300, 2770, 3200, 3700 };
+    uint16_t tab[OCTAVES];
+
+    load(ch, tab);
 
     bucketize(xs, n, tab);
-    pause("done");
+    if (menu("save", noyes, sizeof(noyes) / sizeof(*noyes)))
+        save(ch, tab);
 }
 
 static void auto_tune()

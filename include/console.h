@@ -13,6 +13,8 @@ using namespace color;
 using console = console_t<board::tft>;
 using encoder = board::encoder;
 
+static const char *noyes[] = { "no", "yes" };
+
 static unsigned menu(const char *s, const char **xs, unsigned n)
 {
     uint16_t r, c;
