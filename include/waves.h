@@ -173,7 +173,7 @@ void setup()
     adc_tim::enable_update_interrupt();
     interrupt::set<interrupt::TIM3>();
     adc_dma::setup();
- 
+
     vrefbuf::setup<vrs_2900>();
 
     adc1::setup<6>();
@@ -184,7 +184,7 @@ void setup()
     adc1::trigger<0x4>();        // FIXME: use symbol for TIM3_TRGO
     adc1::enable();
     adc1::start_conversion();
- 
+
     adc2::setup<6>();
     adc2::sample_time<2>();
     adc2::oversample<32>();
@@ -193,7 +193,7 @@ void setup()
     adc2::trigger<0x4>();        // FIXME: use symbol for TIM3_TRGO
     adc2::enable();
     adc2::start_conversion();
- 
+
     adc1::enable_interrupt(adc1::EOS);
     interrupt::set<interrupt::ADC1_2>();
 }
@@ -205,6 +205,10 @@ void start_io()
     aux_tim::setup(10 - 1, sys_clock::freq() / 10000 - 1);  // 1kHz
     aux_tim::enable_update_interrupt();
     interrupt::set<interrupt::TIM7>();
+
+    triga::enable_interrupt<both_edges>();
+    trigb::enable_interrupt<both_edges>();
+    interrupt::set<interrupt::EXTI15_10>();
 }
 
 void start_dacdma()
@@ -259,6 +263,44 @@ template<> void handler<interrupt::TIM3>()
 template<> void handler<interrupt::ADC1_2>()
 {
     board::adc1::clear_interrupt_flags(board::adc1::EOS);
+}
+
+static itrigger *cb_trig_a = 0, *cb_trig_b = 0;
+
+static void register_triggers(itrigger *a, itrigger *b)
+{
+    cb_trig_a = a;
+    cb_trig_b = b;
+}
+
+template<> void handler<interrupt::EXTI15_10>()
+{
+    using namespace board;
+    extern void trigger_a(bool), trigger_b(bool);
+
+    bool ba = triga::interrupt_pending();
+    bool bb = trigb::interrupt_pending();
+
+    if (ba && cb_trig_a)
+    {
+        bool gate = !triga::read();
+
+        cb_trig_a->trigger(gate);
+        board::led1::write(gate);
+    }
+
+    if (bb && cb_trig_b)
+    {
+        bool gate = !trigb::read();
+
+        cb_trig_b->trigger(gate);
+        board::led3::write(gate);
+    }
+
+    if (ba)
+        triga::clear_interrupt();
+    if (bb)
+        trigb::clear_interrupt();
 }
 
 template<ch_t CH> float calibration<CH>::m_x0 = 2745.67;

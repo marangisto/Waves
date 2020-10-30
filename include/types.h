@@ -32,6 +32,11 @@ struct ctrl_t
     float       cv3;
 };
 
+struct itrigger
+{
+    virtual void trigger(bool rise = true) = 0;
+};
+
 template<ch_t CH>
 struct calibration
 {

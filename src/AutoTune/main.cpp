@@ -1,36 +1,28 @@
 #include <console.h>
-#include <trigger.h>
 
 using eeprom = board::eeprom;
 
 static constexpr unsigned OCTAVES = 8;
 
-static volatile uint16_t g_cva = 0, g_cvb = 0;
-static volatile bool g_trga = false, g_trgb = false;
-
-void trigger_a(bool gate)
+struct trigger_t: itrigger
 {
-    board::led1::write(gate);
+    void setup(ch_t _ch) { ch = _ch; fired = false; }
 
-    if (gate)
+    virtual void trigger(bool gate)
     {
-        g_cva = board::reada<0>();
-        g_trga = true;
+        if (gate)
+        {
+            adc = ch == A ? board::reada<0>() : board::readb<0>();
+            fired = true;
+        }
     }
-}
 
-void trigger_b(bool gate)
-{
-    board::led3::write(gate);
+    ch_t                ch;
+    volatile uint16_t   adc;
+    volatile bool       fired;
+};
 
-    if (gate)
-    {
-        g_cvb = board::readb<0>();
-        g_trgb = true;
-    }
-}
-
-static unsigned collect_samples(ch_t ch, uint16_t *xs, unsigned n)
+static unsigned collect_samples(trigger_t& t, uint16_t *xs, unsigned n)
 {
     message_t m;
 
@@ -39,11 +31,11 @@ static unsigned collect_samples(ch_t ch, uint16_t *xs, unsigned n)
 
     for (unsigned i = 0; i < n; ++i)
     {
-        while (!(ch == A ? g_trga : g_trgb))
+        while (!t.fired)
             if (board::mq::get(m))              // user aboort
                 return i;
-        xs[i] = ch == A ? g_cva : g_cvb;
-        (ch == A ? g_trga : g_trgb) = false;
+        xs[i] = t.adc;
+        t.fired = false;
         console::set_pos(0, 0);
         printf<console>("%3d %5d ", i, xs[i]);
     }
@@ -119,14 +111,14 @@ static int save(ch_t ch, const uint16_t tab[OCTAVES])
     return eeprom::write(addr, reinterpret_cast<const char*>(tab), size);
 };
 
-static void calibrate(ch_t ch)
+static void calibrate(ch_t ch, trigger_t& t)
 {
     constexpr unsigned N = 200;
     static uint16_t xs[N];
 
     console::clear();
 
-    unsigned n = collect_samples(ch, xs, N);
+    unsigned n = collect_samples(t, xs, N);
 
     console::set_pos(0, 0);
     printf<console>("got %d samples\n", n);
@@ -159,6 +151,13 @@ static void auto_tune()
         ;
     const char *items[] = { "0", "1", "2" };
 
+    static trigger_t ta, tb;
+
+    ta.setup(A);
+    tb.setup(B);
+
+    register_triggers(&ta, &tb);
+
     for (;;)
     {
         console::clear();
@@ -166,12 +165,13 @@ static void auto_tune()
         switch (menu(text, items, sizeof(items) / sizeof(*items)))
         {
         case 0:
+            register_triggers(0, 0);
             return;
         case 1:
-            calibrate(A);
+            calibrate(A, ta);
             break;
         case 2:
-            calibrate(B);
+            calibrate(B, tb);
             break;
         default: ;
         }
@@ -182,7 +182,6 @@ int main()
 {
     board::setup();
     board::start_io();
-    board::start_trigger();
     console::setup(fontlib::cmuntt_20, color::green, color::black);
     console::clear();
 

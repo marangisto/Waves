@@ -13,7 +13,6 @@ using namespace fixed;
 struct imodel
 {
     virtual void generate(ctrl_t& ctx, int32_t *buf, uint16_t n, uint8_t stride) = 0;
-    virtual void trigger(bool rise = true) = 0;
 };
 
 enum scale_t

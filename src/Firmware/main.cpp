@@ -1,7 +1,6 @@
 static const unsigned long SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
 
 #include <waves.h>
-#include <trigger.h>
 #include "gui.h"
 
 using namespace board;
@@ -14,20 +13,6 @@ static volatile float dac_load = 0.0f;
 
 static imodel *model_a = 0;
 static imodel *model_b = 0;
-
-void trigger_a(bool gate)
-{
-    if (model_a)
-        model_a->trigger(gate);
-    led1::write(gate);
-}
-
-void trigger_b(bool gate)
-{
-    if (model_b)
-        model_b->trigger(gate);
-    led3::write(gate);
-}
 
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
@@ -83,8 +68,9 @@ int main()
     model_a = &gui.channel_a;
     model_b = &gui.channel_b;
 
+    register_triggers(&gui.channel_a, &gui.channel_b);
+
     board::start_io();
-    board::start_trigger();
     board::start_dacdma();
 
     interrupt::set<interrupt::DMA2_CH1>();

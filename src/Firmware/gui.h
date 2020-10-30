@@ -11,7 +11,7 @@
 #include "calib.h"
 
 template<ch_t CH, typename DISPLAY>
-struct chan_t : border_t<DISPLAY>, imodel
+struct chan_t : border_t<DISPLAY>, imodel, itrigger
 {
     typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_note> notebox;
@@ -108,6 +108,8 @@ struct chan_t : border_t<DISPLAY>, imodel
         }
     }
 
+    // itrigger
+ 
     virtual void trigger(bool rise)
     {
         switch (m_prog)

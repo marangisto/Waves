@@ -124,7 +124,7 @@ struct oplabels_t: border_t<DISPLAY>
 };
 
 template<ch_t CH, typename DISPLAY>
-struct freqmod_t: window_t<DISPLAY>, imodel
+struct freqmod_t: window_t<DISPLAY>, imodel, itrigger
 {
     static constexpr uint8_t num_ops = 2;
     typedef valuebox_t<DISPLAY, show_str> label;
@@ -179,6 +179,8 @@ struct freqmod_t: window_t<DISPLAY>, imodel
         for (uint16_t i = 0; i < n; ++i, buf += stride)
             *buf = board::dacdma::swap(m_op0.sample(m_op1.sample()).q);
     }
+
+    // itrigger
 
     virtual void trigger(bool gate)
     {
