@@ -1,15 +1,6 @@
-#include <waves.h>
+#include <console.h>
 #include <trigger.h>
-#include <textio.h>
-#include <text.h>
-#include <algorithm>
 
-using namespace fontlib;
-using namespace text;
-using namespace color;
-
-using console = console_t<board::tft>;
-using encoder = board::encoder;
 //using eeprom = board::eeprom;
 
 static constexpr unsigned OCTAVES = 8;
@@ -79,8 +70,6 @@ static unsigned bucketize(uint16_t *xs, unsigned n, uint16_t ys[OCTAVES])
     {
         uint32_t avg = sums[k] / counts[k];
 
-        //printf<console>("x[%u] = %u, avg = %u\n", i, xs[i], avg);
-
         if (xs[i] > avg + spread)
             ++k;
 
@@ -122,60 +111,49 @@ static void calibrate(ch_t ch)
     console::clear();
 
     unsigned n = collect_samples(ch, xs, N);
-    message_t m;
 
     console::set_pos(0, 0);
     printf<console>("got %d samples\n", n);
 
     if (n < N)
     {
-        printf<console>("not enough samples, try again!\n");
-        while (!board::mq::get(m));
+        pause("not enough samples");
         return;
     }
 
     uint16_t tab[OCTAVES] = { 400, 900, 1300, 1900, 2300, 2770, 3200, 3700 };
 
     bucketize(xs, n, tab);
-    while (!board::mq::get(m));
+    pause("done");
 }
 
 static void auto_tune()
 {
-    console::clear();
-    printf<console>("AutoTune 0.1\n");
-    printf<console>("-------------------------------\n");
-
-    uint16_t choice = 0;
-    message_t m;
-
-    board::mq::put(m.emplace<encoder_delta>(0));
-
-    printf<console>(
+    const char *text = 
+        "AutoTune 0.1\n"
+        "-------------------------------\n"
         "options:\n\n"
         "    1: tune channel a\n"
         "    2: tune channel b\n"
         "    0: quit\n"
-        );
+        "\nchoice"
+        ;
+    const char *items[] = { "0", "1", "2" };
 
     for (;;)
     {
-        while (!board::mq::get(m));
+        console::clear();
 
-        switch (m.index())
+        switch (menu(text, items, sizeof(items) / sizeof(*items)))
         {
-        case encoder_delta:
-            choice = (choice + std::get<encoder_delta>(m)) & 0x7;
-            console::set_pos(8, 0);
-            printf<console>("choice: %1u\n", choice);
+        case 0:
+            return;
+        case 1:
+            calibrate(A);
             break;
-        case encoder_press:
-            switch (choice)
-            {
-            case 1: calibrate(A); return;
-            case 2: calibrate(B); return;
-            case 0: return;
-            }
+        case 2:
+            calibrate(B);
+            break;
         default: ;
         }
     }
