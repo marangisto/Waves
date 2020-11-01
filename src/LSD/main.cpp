@@ -5,6 +5,7 @@
 ////
 
 #include <board.h>
+#include <draw.h>
 
 using display = board::tft;
 using namespace color;

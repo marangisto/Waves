@@ -7,6 +7,7 @@
 #include <i2s.h>
 #include <at25.h>
 #include <st7789.h>
+#include <text.h>
 #include <fifo.h>
 #include <message.h>
 #include "dacdma.h"
@@ -49,6 +50,7 @@ typedef pulse_t<PC14> led4;
 
 typedef at25_t<256, spi_t<2, PB13, PA11, PA10>, PB12> eeprom;
 typedef st7789_t<1, PA5, PA7, PB1, PB4> tft;
+typedef text::console_t<tft> console;
 typedef i2s_t<3, PB3, PB5, PA15> dac;
 typedef dacdma_t<dac, 2, 1, 128> dacdma;
 typedef output_t<PA10> mem_miso;

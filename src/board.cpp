@@ -85,6 +85,7 @@ void setup()
     bdecb.setup();
 
     tft::setup<fpclk_8>(color::black);
+    console::setup(fontlib::cmuntt_20, color::green, color::black);
     eeprom::setup();
 
     adc_tim::setup(1, (sys_clock::freq() >> 1) / adc_sample_freq - 1);
