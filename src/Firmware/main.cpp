@@ -1,6 +1,7 @@
 static const unsigned long SAMPLE_FREQ = 98380;  // adjusted for I2S prescale = 27 at 170MHz
 
 #include <board.h>
+#include <tuning.h>
 #include "gui.h"
 
 using namespace board;
@@ -51,7 +52,11 @@ int main()
     board::dacdma::set_right_gen(fb);
 
     board::setup();
-    sys_tick::delay_ms(250);
+    board::start_io();
+
+    if (encoder_btn::pressed()) // encoder pressed on reset
+        for (;;)
+            auto_tune();
 
     static theme_t theme =
         { white                 // primary font color
@@ -70,7 +75,6 @@ int main()
 
     register_triggers(&gui.channel_a, &gui.channel_b);
 
-    board::start_io();
     board::start_dacdma();
 
     interrupt::set<interrupt::DMA2_CH1>();
