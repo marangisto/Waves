@@ -6,7 +6,6 @@ enum prog_t
     , pg_kick
     , pg_snare
     , pg_hihat
-    , pg_calib
     , pg_sentinel
     };
 
@@ -25,7 +24,6 @@ enum ch_t
 
 struct ctrl_t
 {
-    uint16_t    adc0;
     float       freq;
     float       cv1;
     float       cv2;

@@ -12,8 +12,7 @@ uint16_t adc2_buf[adc_buf_size];
 
 void read_cv_a(ctrl_t& ctrl)
 {
-    ctrl.adc0 = reada<0>();
-    ctrl.freq = calibration<A>::cv(ctrl.adc0);
+    ctrl.freq = calibration<A>::cv(reada<0>());
     ctrl.cv1 = reada<1>();
     ctrl.cv2 = reada<2>();
     ctrl.cv3 = reada<3>();
@@ -21,8 +20,7 @@ void read_cv_a(ctrl_t& ctrl)
 
 void read_cv_b(ctrl_t& ctrl)
 {
-    ctrl.adc0 = readb<0>();
-    ctrl.freq = calibration<B>::cv(ctrl.adc0);
+    ctrl.freq = calibration<B>::cv(readb<0>());
     ctrl.cv1 = readb<1>();
     ctrl.cv2 = readb<2>();
     ctrl.cv3 = readb<3>();

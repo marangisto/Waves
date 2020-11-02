@@ -8,7 +8,6 @@
 //#include "kick.h"
 //#include "snare.h"
 //#include "hihat.h"
-#include "calib.h"
 
 template<ch_t CH, typename DISPLAY>
 struct chan_t : border_t<DISPLAY>, imodel, itrigger
@@ -37,7 +36,6 @@ struct chan_t : border_t<DISPLAY>, imodel, itrigger
             )
         , m_freqmod(t)
         // other modules!
-        , m_calib(t)
         , m_quiet(quiet)
     {
         m_voct.setup(m_tuning.ptr(), m_transpose.ptr(), m_scale.ptr());
@@ -46,7 +44,6 @@ struct chan_t : border_t<DISPLAY>, imodel, itrigger
         m_kick.setup();
         m_snare.setup();
         m_hihat.setup();
-        m_calib.setup();
         */
     }
 
@@ -61,7 +58,6 @@ struct chan_t : border_t<DISPLAY>, imodel, itrigger
             case pg_snare:      return &m_snare;
             case pg_hihat:      return &m_hihat;
 */
-            case pg_calib:      return &m_calib;
             default:            return &m_freqmod;  // safety first
         }
     }
@@ -103,7 +99,6 @@ struct chan_t : border_t<DISPLAY>, imodel, itrigger
             case pg_snare:      m_snare.generate(ctrl, buf, n, stride); break;
             case pg_hihat:      m_hihat.generate(ctrl, buf, n, stride); break;
 */
-            case pg_calib:      m_calib.generate(ctrl, buf, n, stride); break;
             default: ;
         }
     }
@@ -121,7 +116,6 @@ struct chan_t : border_t<DISPLAY>, imodel, itrigger
             case pg_snare:      m_snare.trigger(rise); break;
             case pg_hihat:      m_hihat.trigger(rise); break;
 */
-            case pg_calib:      m_calib.trigger(rise); break;
             default: ;
         }
     }
@@ -142,7 +136,6 @@ struct chan_t : border_t<DISPLAY>, imodel, itrigger
     snare_t<CH, DISPLAY>    m_snare;
     hihat_t<CH, DISPLAY>    m_hihat;
 */
-    calib_t<CH, DISPLAY>    m_calib;
     const bool&             m_quiet;
 };
 
