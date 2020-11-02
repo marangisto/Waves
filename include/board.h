@@ -103,6 +103,3 @@ void start_dacdma();
 
 void register_triggers(itrigger *a, itrigger *b);
 
-template<ch_t CH> float calibration<CH>::m_x0 = 2745.67;
-template<ch_t CH> float calibration<CH>::m_k = 1. / 464.67;
-

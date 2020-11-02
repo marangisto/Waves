@@ -1,5 +1,5 @@
 #include <board.h>
-#include <stdlib.h>
+#include <tuning.h>
 #include <vrefbuf.h>
 
 namespace board
@@ -10,17 +10,22 @@ using namespace dacdma;
 uint16_t adc1_buf[adc_buf_size];
 uint16_t adc2_buf[adc_buf_size];
 
+static uint16_t tab_a[OCTAVES];
+static uint16_t tab_b[OCTAVES];
+
 void read_cv_a(ctrl_t& ctrl)
 {
-    ctrl.freq = calibration<A>::cv(reada<0>());
-    ctrl.cv1 = reada<1>();
+    float midi = adc2midi(tab_a, reada<0>());
+    ctrl.freq = (midi - 57) / 12;
+    ctrl.cv2 = reada<1>();
     ctrl.cv2 = reada<2>();
     ctrl.cv3 = reada<3>();
 }
 
 void read_cv_b(ctrl_t& ctrl)
 {
-    ctrl.freq = calibration<B>::cv(readb<0>());
+    float midi = adc2midi(tab_b, readb<0>());
+    ctrl.freq = (midi - 57) / 12;
     ctrl.cv1 = readb<1>();
     ctrl.cv2 = readb<2>();
     ctrl.cv3 = readb<3>();
@@ -84,7 +89,10 @@ void setup()
 
     tft::setup<fpclk_8>(color::black);
     console::setup(fontlib::cmuntt_20, color::green, color::black);
+
     eeprom::setup();
+    load_tuning(A, tab_a);
+    load_tuning(B, tab_b);
 
     adc_tim::setup(1, (sys_clock::freq() >> 1) / adc_sample_freq - 1);
     adc_tim::master_mode<adc_tim::mm_update>();
