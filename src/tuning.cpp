@@ -97,7 +97,7 @@ static unsigned bucketize(uint16_t *xs, unsigned n, uint16_t ys[OCTAVES])
     return OCTAVES;
 }
 
-static int load(ch_t ch, uint16_t tab[OCTAVES])
+int load_tuning(ch_t ch, uint16_t tab[OCTAVES])
 {
     const uint16_t size = OCTAVES * sizeof(*tab);
     const uint16_t addr = ch == B ? size : 0;
@@ -105,7 +105,7 @@ static int load(ch_t ch, uint16_t tab[OCTAVES])
     return eeprom::read(addr, reinterpret_cast<char*>(tab), size);
 };
 
-static int save(ch_t ch, const uint16_t tab[OCTAVES])
+static int save_tuning(ch_t ch, const uint16_t tab[OCTAVES])
 {
     const uint16_t size = OCTAVES * sizeof(*tab);
     const uint16_t addr = ch == B ? size : 0;
@@ -133,11 +133,11 @@ static void calibrate(ch_t ch, trigger_t& t)
 
     uint16_t tab[OCTAVES];
 
-    load(ch, tab);
+    load_tuning(ch, tab);
 
     bucketize(xs, n, tab);
     if (menu("save", noyes, sizeof(noyes) / sizeof(*noyes)))
-        save(ch, tab);
+        save_tuning(ch, tab);
 }
 
 void auto_tune()
