@@ -15,8 +15,7 @@ static uint16_t tab_b[OCTAVES];
 
 void read_cv_a(ctrl_t& ctrl)
 {
-    float midi = adc2midi(tab_a, reada<0>());
-    ctrl.freq = (midi - 57) / 12;
+    ctrl.freq = adc2cv(tab_a, reada<0>());
     ctrl.cv2 = reada<1>();
     ctrl.cv2 = reada<2>();
     ctrl.cv3 = reada<3>();
@@ -24,8 +23,7 @@ void read_cv_a(ctrl_t& ctrl)
 
 void read_cv_b(ctrl_t& ctrl)
 {
-    float midi = adc2midi(tab_b, readb<0>());
-    ctrl.freq = (midi - 57) / 12;
+    ctrl.freq = adc2cv(tab_b, readb<0>());
     ctrl.cv1 = readb<1>();
     ctrl.cv2 = readb<2>();
     ctrl.cv3 = readb<3>();
