@@ -32,3 +32,10 @@ _build
 ~*xlsx
 *.o
 test
+
+# Haskell Stack
+.stack-work/
+stack.yaml.lock
+*.cabal
+*~
+*.swp
