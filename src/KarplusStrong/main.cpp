@@ -11,7 +11,7 @@ using tim6 = tim_t<6>;
 using dac = dac_t<1>;
 using dma = dma_t<1>;
 
-static constexpr uint32_t sample_freq = 48000;
+static constexpr uint32_t sample_freq = 96000;
 static constexpr uint8_t dac_dma_ch = 1;
 static constexpr uint16_t buffer_size = 256; // N.B. even!
 static constexpr uint16_t half_buffer_size = buffer_size >> 1;
@@ -20,8 +20,13 @@ static uint16_t buffer[buffer_size];
 using led = output_t<PA5>;
 using probe = output_t<PA8>;
 
-static constexpr unsigned lo_freq = 50;
+static constexpr unsigned lo_freq = 20;
 static constexpr unsigned wg_len = sample_freq / lo_freq;
+
+static constexpr q31_t zero = q31_t(.0);
+static constexpr q31_t one = q31_t(1.);
+
+extern const q31_t *gauss_kernel(unsigned n);
 
 struct delay_line_t
 {
@@ -52,38 +57,46 @@ struct delay_line_t
     q31_t    m_buf[wg_len];
 };
 
-template<unsigned N>
-struct kernel_t
+// Create fractionally shifted kernel of order n
+// into buffer and return the mid-point index.
+// Note that kernel n has n + 1 elements and
+// thus the interpolated kernel has n + 1 + 1
+// = n + 2 elements because of the shifted values.
+
+static unsigned make_kernel(q31_t *buf, unsigned n, q31_t frac)
 {
-    static constexpr unsigned width = N;
-    static constexpr unsigned mid = (N & 1) ? N / 2 : (N / 2 - 1);
-    static constexpr q31_t zero = q31_t(.0);
-    static constexpr q31_t one = q31_t(1.);
-    static constexpr q31_t k = q31_t(1. / (N - 1));
+    const q31_t *p = gauss_kernel(n);
 
-    static inline q31_t c0(unsigned i) { return i == N - 1 ? zero : k; }
-    static inline q31_t c1(unsigned i) { return i == 0 ? zero : k; }
-    static inline q31_t c2(unsigned i) { return i == mid ? one : zero; }
-    static inline q31_t c3(unsigned i) { return i == mid + 1 ? one : zero; }
-
-    void configure(q31_t a, q31_t b)
+    if (p)
     {
-        for (unsigned i = 0; i < N; ++i)
-            coeff[i] = (one - b) * ((one - a) * c0(i) + a * c1(i))
-                     + b * ((one - a) * c2(i) + a * c3(i))
-                     ;
-    }
+        const q31_t w(one - frac);
 
-    q31_t coeff[N];
-};
+        buf[0] = w * p[0];
+        for (unsigned i = 1; i <= n; ++i)
+            buf[i] = w * p[i] + frac * p[i-1];
+        buf[n+1] = frac * p[n];
+    }
+    else
+        for (unsigned i = 0; i <= n + 1; ++i)
+            buf[i] = zero;
+    return n >> 1;
+}
 
 static delay_line_t delay_line;
-
 static volatile bool trigger = false;
-
 static volatile unsigned index = 400;
+static q31_t kernel[33]; // usable for orders 1..31
+static volatile unsigned kernel_order = 31;
+static volatile unsigned kernel_mid = 2;
 
-static kernel_t<8> kernel;
+static void set_freq(float freq, unsigned ko = 1)
+{
+    float period = static_cast<float>(sample_freq) / freq;
+
+    index = period;
+    kernel_order = ko;
+    kernel_mid = make_kernel(kernel, kernel_order, q31_t(period - index));
+}
 
 static q31_t karplus()
 {
@@ -98,11 +111,11 @@ static q31_t karplus()
     if (excite)
     {
         --excite;
-        q31_t mix(0.5);
+        q31_t mix(0.9);
         q31_t noise = q31_t(static_cast<int32_t>(rand()) << 1);
-        q31_t pulse = q31_t(excite > (index >> 5) ? 0.99 : -0.99);
+        q31_t pulse = q31_t(excite > (index >> 1) ? 0.99 : -0.99);
 
-        return q31_t(0.0) * delay_line.write
+        return q31_t(0.5) * delay_line.write
             ( mix * noise
             + (q31_t(1.0) - mix) * pulse
             );
@@ -110,21 +123,13 @@ static q31_t karplus()
     else
     {
         q31_t s = q31_t(.0);
+        unsigned kernel_width = kernel_order + 2;
 
-        for (unsigned k = 0; k < kernel.width; ++k)
-            s = s + kernel.coeff[k] * delay_line.read(index + k - kernel.mid);
+        for (unsigned k = 0; k < kernel_width; ++k)
+            s = s + kernel[k] * delay_line.read(index + k - kernel_mid);
 
         return delay_line.write(q31_t(0.999) * s);
     }
-/*
-        return delay_line.write
-            ( q31_t(0.199) * delay_line.read(index + -2)
-            + q31_t(0.199) * delay_line.read(index + -1)
-            + q31_t(0.199) * delay_line.read(index + 0)
-            + q31_t(0.199) * delay_line.read(index + 1)
-            + q31_t(0.199) * delay_line.read(index + 2)
-            );
-*/
 }
 
 static void generate(uint16_t *buf, uint16_t len)
@@ -181,19 +186,13 @@ int main()
 
     delay_line.setup();
 
-    kernel.configure(q31_t(0.5), q31_t(.99));
-
-    index = static_cast<float>(sample_freq) / 220.0;
-
-    for (float t = 0;; t += 0.1)
-    {
-        static unsigned j = 0;
-
-        led::toggle();
-        sys_tick::delay_ms(2000);
-//        index = 400. + 100. * sin(t);
-        index = static_cast<float>(sample_freq) / ((j++ & 1) ? 220 : 330);
-        trigger = true;
-    }
+    for (;;)
+      for (unsigned i = 0; i <= 12; ++i)
+        {
+            led::toggle();
+            sys_tick::delay_ms(500);
+            set_freq(220. * pow(2., static_cast<float>(i) / 12.), 5);
+            trigger = true;
+        }
 }
 
