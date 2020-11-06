@@ -191,7 +191,7 @@ int main()
         {
             led::toggle();
             sys_tick::delay_ms(500);
-            set_freq(220. * pow(2., static_cast<float>(i) / 12.), 5);
+            set_freq(27.5 * pow(2., static_cast<float>(i) / 12.), 16);
             trigger = true;
         }
 }

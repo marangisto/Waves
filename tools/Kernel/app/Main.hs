@@ -17,9 +17,10 @@ main = do
         , "using namespace fixed;"
         ]
     forM_ [1..31] $ \n -> do
-        let xs = map (choose n) [0..n]
+        --let xs = map (fromIntegral . choose n) [0..n]
+        let xs = map (epanechnikov n) [0..n]
             s = sum xs
-        putStrLn $ decl n $ map (q31 . (/ fromIntegral s) . fromIntegral) xs
+        putStrLn $ decl n $ map (q31 . (/s)) xs
     putStrLn $ unlines $
         [ ""
         , "const q31_t *gauss_kernel(unsigned n)"
@@ -37,6 +38,10 @@ main = do
              <> ": return gauss_kernel_"
              <> show n
              <> ";"
+
+epanechnikov :: Int -> Int -> Double
+epanechnikov n i = 1 - x * x
+    where x = 2 * (fromIntegral (i + 1) / fromIntegral (n + 2)) - 1
 
 decl n xs = "\nconstexpr q31_t gauss_kernel_" <> show n <> "[" <> show (n + 1) <> "] = \n"
          <> "    { " <> ss <> "\n    };"
