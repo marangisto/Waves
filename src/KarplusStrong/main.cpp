@@ -11,7 +11,7 @@ using tim6 = tim_t<6>;
 using dac = dac_t<1>;
 using dma = dma_t<1>;
 
-static constexpr uint32_t sample_freq = 96000;
+static constexpr uint32_t sample_freq = 384000;
 static constexpr uint8_t dac_dma_ch = 1;
 static constexpr uint16_t buffer_size = 256; // N.B. even!
 static constexpr uint16_t half_buffer_size = buffer_size >> 1;
@@ -20,7 +20,7 @@ static uint16_t buffer[buffer_size];
 using led = output_t<PA5>;
 using probe = output_t<PA8>;
 
-static constexpr unsigned lo_freq = 20;
+static constexpr unsigned lo_freq = 400;
 static constexpr unsigned wg_len = sample_freq / lo_freq;
 
 static constexpr q31_t zero = q31_t(.0);
@@ -91,16 +91,25 @@ struct karplus_strong_t
         excite = 0;
         delay.setup();
         set_freq(440.);
+        count = 0;
     }
 
     void set_freq(float freq, unsigned kno = 1)
     {
+        unsigned undersample = 0;
         float period = static_cast<float>(sample_freq) / freq;
 
+        while (period > N - 31)     // kernel margin
+        {
+            period *= 0.5;
+            ++undersample;
+        }
+
         // FIXME: critical section
-        index = std::min<unsigned>(N - 16, period); // FIXME: better bound
+        index = period;
         mid = shift_kernel(kernel, kno, q31_t(period - index));
         width = kno + 2;
+        mask = (1 << undersample) - 1;
     }
 
     void trigger()
@@ -108,11 +117,19 @@ struct karplus_strong_t
         excite = index;
     }
 
-    q31_t sample()
+    uint16_t sample()
+    {
+        if (!mask || !(count++ & mask))
+            last = 2048 + (step().q >> 20);
+
+        return last;
+    }
+
+    q31_t step()
     {
         if (excite)
         {
-            q31_t mix(0.9);
+            q31_t mix(0.5);
             q31_t noise = q31_t(static_cast<int32_t>(rand()) << 1);
             q31_t pulse = q31_t(excite < (index >> 1) ? 0.99 : -0.99);
 
@@ -142,15 +159,17 @@ struct karplus_strong_t
     volatile unsigned   width;
     volatile unsigned   index;
     volatile unsigned   excite;
+    volatile unsigned   count;
+    volatile unsigned   mask;
+    uint16_t            last;
 };
 
-static karplus_strong_t<wg_len> karplus;
+static karplus_strong_t<2048> karplus;
 
 static void generate(uint16_t *buf, uint16_t len)
 {
     for (uint16_t i = 0; i < len; ++i)
-        //buf[i] = 2048 + (karplus().q >> 20);
-        buf[i] = 2048 + (karplus.sample().q >> 20);
+        buf[i] = karplus.sample();
 }
 
 template<> void handler<interrupt::DMA1_CH1>()
@@ -202,11 +221,11 @@ int main()
     karplus.setup();
 
     for (;;)
-      for (unsigned i = 0; i <= 12; ++i)
+      for (unsigned i = 0; i <= 24; ++i)
         {
             led::toggle();
-            sys_tick::delay_ms(2000);
-            karplus.set_freq(110. * pow(2., static_cast<float>(i) / 12.), 1);
+            sys_tick::delay_ms(500);
+            karplus.set_freq(0.25 * 440. * pow(2., static_cast<float>(i) / 12.), 8);
             karplus.trigger();
         }
 }
