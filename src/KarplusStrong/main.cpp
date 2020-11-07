@@ -28,20 +28,21 @@ static constexpr q31_t one = q31_t(1.);
 
 extern const q31_t *epanechnikov(unsigned n);
 
+template<unsigned N>
 struct delay_line_t
 {
     void setup()
     {
         m_pos = 0;
 
-        for (unsigned i = 0; i < wg_len; ++i)
+        for (unsigned i = 0; i < N; ++i)
             m_buf[i] = q31_t();
     }
 
     q31_t write(q31_t x)
     {
         m_buf[m_pos++] = x;
-        if (static_cast<unsigned>(m_pos) >= wg_len)
+        if (static_cast<unsigned>(m_pos) >= N)
             m_pos = 0;
         return x;
     }
@@ -50,11 +51,11 @@ struct delay_line_t
     {
         int j = m_pos - tap;
 
-        return m_buf[j < 0 ? j + wg_len : j];
+        return m_buf[j < 0 ? j + N : j];
     }
 
     int      m_pos;
-    q31_t    m_buf[wg_len];
+    q31_t    m_buf[N];
 };
 
 // Create fractionally shifted kernel of order n
@@ -63,7 +64,7 @@ struct delay_line_t
 // thus the interpolated kernel has n + 1 + 1
 // = n + 2 elements because of the shifted values.
 
-static unsigned make_kernel(q31_t *buf, unsigned n, q31_t frac)
+static unsigned shift_kernel(q31_t *buf, unsigned n, q31_t frac)
 {
     const q31_t *p = epanechnikov(n);
 
@@ -82,60 +83,74 @@ static unsigned make_kernel(q31_t *buf, unsigned n, q31_t frac)
     return n >> 1;
 }
 
-static delay_line_t delay_line;
-static volatile bool trigger = false;
-static volatile unsigned index = 400;
-static q31_t kernel[33]; // usable for orders 1..31
-static volatile unsigned kernel_order = 31;
-static volatile unsigned kernel_mid = 2;
-
-static void set_freq(float freq, unsigned ko = 1)
+template<unsigned N>
+struct karplus_strong_t
 {
-    float period = static_cast<float>(sample_freq) / freq;
+    void setup()
+    {
+        excite = 0;
+        delay.setup();
+        set_freq(440.);
+    }
 
-    index = period;
-    kernel_order = ko;
-    kernel_mid = make_kernel(kernel, kernel_order, q31_t(period - index));
-}
+    void set_freq(float freq, unsigned kno = 1)
+    {
+        float period = static_cast<float>(sample_freq) / freq;
 
-static q31_t karplus()
-{
-    static unsigned excite = 0;
+        // FIXME: critical section
+        index = std::min<unsigned>(N - 16, period); // FIXME: better bound
+        mid = shift_kernel(kernel, kno, q31_t(period - index));
+        width = kno + 2;
+    }
 
-    if (trigger)
+    void trigger()
     {
         excite = index;
-        trigger = false;
     }
 
-    if (excite)
+    q31_t sample()
     {
-        --excite;
-        q31_t mix(0.9);
-        q31_t noise = q31_t(static_cast<int32_t>(rand()) << 1);
-        q31_t pulse = q31_t(excite > (index >> 1) ? 0.99 : -0.99);
+        if (excite)
+        {
+            q31_t mix(0.9);
+            q31_t noise = q31_t(static_cast<int32_t>(rand()) << 1);
+            q31_t pulse = q31_t(excite < (index >> 1) ? 0.99 : -0.99);
 
-        return q31_t(0.5) * delay_line.write
-            ( mix * noise
-            + (q31_t(1.0) - mix) * pulse
-            );
+            --excite;
+
+            // FIXME: add excitation amplitude for velocity
+
+            return q31_t(0.5) * delay.write
+                ( mix * noise
+                + (q31_t(1.0) - mix) * pulse
+                );
+        }
+        else
+        {
+            q31_t s = q31_t(.0);
+
+            for (unsigned k = 0; k < width; ++k)
+                s = s + kernel[k] * delay.read(index + k - mid);
+
+            return delay.write(q31_t(0.5) * s + q31_t(0.500) * s);
+        }
     }
-    else
-    {
-        q31_t s = q31_t(.0);
-        unsigned kernel_width = kernel_order + 2;
 
-        for (unsigned k = 0; k < kernel_width; ++k)
-            s = s + kernel[k] * delay_line.read(index + k - kernel_mid);
+    delay_line_t<N>     delay;
+    q31_t               kernel[33];     // usable for orders 1..31
+    volatile unsigned   mid;
+    volatile unsigned   width;
+    volatile unsigned   index;
+    volatile unsigned   excite;
+};
 
-        return delay_line.write(q31_t(0.5) * s + q31_t(0.500) * s);
-    }
-}
+static karplus_strong_t<wg_len> karplus;
 
 static void generate(uint16_t *buf, uint16_t len)
 {
     for (uint16_t i = 0; i < len; ++i)
-        buf[i] = 2048 + (karplus().q >> 20);
+        //buf[i] = 2048 + (karplus().q >> 20);
+        buf[i] = 2048 + (karplus.sample().q >> 20);
 }
 
 template<> void handler<interrupt::DMA1_CH1>()
@@ -184,15 +199,15 @@ int main()
     //tim6::enable_update_interrupt();    // enable sampling frequency probe
     //interrupt::set<interrupt::TIM6_DACUNDER>();
 
-    delay_line.setup();
+    karplus.setup();
 
     for (;;)
       for (unsigned i = 0; i <= 12; ++i)
         {
             led::toggle();
             sys_tick::delay_ms(2000);
-            set_freq(110. * pow(2., static_cast<float>(i) / 12.), 1);
-            trigger = true;
+            karplus.set_freq(110. * pow(2., static_cast<float>(i) / 12.), 1);
+            karplus.trigger();
         }
 }
 
