@@ -26,7 +26,7 @@ static constexpr unsigned wg_len = sample_freq / lo_freq;
 static constexpr q31_t zero = q31_t(.0);
 static constexpr q31_t one = q31_t(1.);
 
-extern const q31_t *gauss_kernel(unsigned n);
+extern const q31_t *epanechnikov(unsigned n);
 
 struct delay_line_t
 {
@@ -65,7 +65,7 @@ struct delay_line_t
 
 static unsigned make_kernel(q31_t *buf, unsigned n, q31_t frac)
 {
-    const q31_t *p = gauss_kernel(n);
+    const q31_t *p = epanechnikov(n);
 
     if (p)
     {
@@ -128,7 +128,7 @@ static q31_t karplus()
         for (unsigned k = 0; k < kernel_width; ++k)
             s = s + kernel[k] * delay_line.read(index + k - kernel_mid);
 
-        return delay_line.write(q31_t(0.999) * s);
+        return delay_line.write(q31_t(0.5) * s + q31_t(0.500) * s);
     }
 }
 
@@ -190,8 +190,8 @@ int main()
       for (unsigned i = 0; i <= 12; ++i)
         {
             led::toggle();
-            sys_tick::delay_ms(500);
-            set_freq(27.5 * pow(2., static_cast<float>(i) / 12.), 16);
+            sys_tick::delay_ms(2000);
+            set_freq(110. * pow(2., static_cast<float>(i) / 12.), 1);
             trigger = true;
         }
 }
