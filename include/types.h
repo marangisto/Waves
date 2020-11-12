@@ -35,6 +35,12 @@ struct itrigger
     virtual void trigger(bool rise = true) = 0;
 };
 
+struct igenerator
+{
+    virtual void trigger(bool rise = true) = 0;
+    virtual void generate(uint16_t *buf, uint16_t len) = 0;
+};
+
 template<ch_t CH>
 struct calibration
 {
