@@ -79,6 +79,11 @@ struct karplus_strong_t: igenerator
         excite = index;
     }
 
+    virtual void pitch(float freq)
+    {
+        set_freq(freq, m_kno);
+    }
+
     virtual void generate(uint16_t *buf, uint16_t len)
     {
         for (uint16_t i = 0; i < len; ++i)
@@ -95,6 +100,10 @@ struct karplus_strong_t: igenerator
 
     void set_freq(float freq, unsigned kno = 1)
     {
+        // FIXME: is there a better way to share state?
+        m_kno = kno;
+        m_freq = freq;
+
         unsigned undersample = 0;
         float period = static_cast<float>(sample_freq) / freq;
 
@@ -104,11 +113,14 @@ struct karplus_strong_t: igenerator
             ++undersample;
         }
 
-        // FIXME: critical section
-        index = period;
-        mid = shift_kernel(kernel, kno, q31_t(period - index));
-        width = kno + 2;
-        mask = (1 << undersample) - 1;
+        {
+            critical_section_t cs;
+
+            index = period;
+            mid = shift_kernel(kernel, kno, q31_t(period - index));
+            width = kno + 2;
+            mask = (1 << undersample) - 1;
+        }
     }
 
     __attribute__((always_inline))
@@ -158,5 +170,8 @@ struct karplus_strong_t: igenerator
     volatile unsigned   count;
     volatile unsigned   mask;
     uint16_t            last;
+    // state marshalling
+    uint16_t            m_kno;
+    float               m_freq;
 };
 

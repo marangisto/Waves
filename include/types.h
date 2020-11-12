@@ -38,6 +38,7 @@ struct itrigger
 struct igenerator
 {
     virtual void trigger(bool rise = true) = 0;
+    virtual void pitch(float freq) = 0;
     virtual void generate(uint16_t *buf, uint16_t len) = 0;
 };
 
