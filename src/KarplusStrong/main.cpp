@@ -11,7 +11,7 @@ using tim6 = tim_t<6>;
 using dac = dac_t<1>;
 using dma = dma_t<1>;
 
-static constexpr uint32_t sample_freq = 384000;
+static constexpr uint32_t sample_freq = 96000;
 static constexpr uint8_t dac_dma_ch = 1;
 static constexpr uint16_t buffer_size = 256; // N.B. even!
 static constexpr uint16_t half_buffer_size = buffer_size >> 1;
@@ -20,11 +20,9 @@ static uint16_t buffer[buffer_size];
 using led = output_t<PA5>;
 using probe = output_t<PA8>;
 
-static constexpr unsigned lo_freq = 400;
-static constexpr unsigned wg_len = sample_freq / lo_freq;
-
 static constexpr q31_t zero = q31_t(.0);
 static constexpr q31_t one = q31_t(1.);
+static constexpr q31_t half = q31_t(.5);
 
 extern const q31_t *epanechnikov(unsigned n);
 
@@ -39,7 +37,8 @@ struct delay_line_t
             m_buf[i] = q31_t();
     }
 
-    q31_t write(q31_t x)
+    __attribute__((always_inline))
+    inline q31_t write(q31_t x)
     {
         m_buf[m_pos++] = x;
         if (static_cast<unsigned>(m_pos) >= N)
@@ -47,7 +46,8 @@ struct delay_line_t
         return x;
     }
 
-    q31_t read(unsigned tap)
+    __attribute__((always_inline))
+    inline q31_t read(unsigned tap)
     {
         int j = m_pos - tap;
 
@@ -117,7 +117,8 @@ struct karplus_strong_t
         excite = index;
     }
 
-    uint16_t sample()
+    __attribute__((always_inline))
+    inline uint16_t sample()
     {
         if (!mask || !(count++ & mask))
             last = 2048 + (step().q >> 20);
@@ -125,11 +126,12 @@ struct karplus_strong_t
         return last;
     }
 
-    q31_t step()
+    __attribute__((always_inline))
+    inline q31_t step()
     {
         if (excite)
         {
-            q31_t mix(0.5);
+            q31_t mix(0.0);
             q31_t noise = q31_t(static_cast<int32_t>(rand()) << 1);
             q31_t pulse = q31_t(excite < (index >> 1) ? 0.99 : -0.99);
 
@@ -138,18 +140,18 @@ struct karplus_strong_t
             // FIXME: add excitation amplitude for velocity
 
             return q31_t(0.5) * delay.write
-                ( mix * noise
-                + (q31_t(1.0) - mix) * pulse
+                ( (one - mix) * noise
+                + mix * pulse
                 );
         }
         else
         {
-            q31_t s = q31_t(.0);
+            q31_t s = zero;
 
             for (unsigned k = 0; k < width; ++k)
                 s = s + kernel[k] * delay.read(index + k - mid);
 
-            return delay.write(q31_t(0.5) * s + q31_t(0.500) * s);
+            return delay.write(half * s + q31_t(0.500) * s);
         }
     }
 
@@ -225,7 +227,7 @@ int main()
         {
             led::toggle();
             sys_tick::delay_ms(500);
-            karplus.set_freq(0.25 * 440. * pow(2., static_cast<float>(i) / 12.), 8);
+            karplus.set_freq(1 * 440. * pow(2., static_cast<float>(i) / 12.), 1);
             karplus.trigger();
         }
 }
