@@ -12,16 +12,21 @@ typedef tim_t<2> dac_tim;
 
 static volatile float dac_load = 0.0f;
 
-static imodel *model_a = 0;
-static imodel *model_b = 0;
+static igenerator *model_a = 0;
+static igenerator *model_b = 0;
 
 static void fa(int32_t *buf, uint16_t n, uint8_t stride)
 {
     ctrl_t ctrl;
 
     read_cv_a(ctrl);
+
     if (model_a)
-        model_a->generate(ctrl, buf, n, stride);
+    {
+        model_a->pitch(ctrl.freq);
+        //model_a->modify(...);
+        model_a->generate(buf, n, stride);
+    }
 }
 
 static void fb(int32_t *buf, uint16_t n, uint8_t stride)
@@ -29,8 +34,13 @@ static void fb(int32_t *buf, uint16_t n, uint8_t stride)
     ctrl_t ctrl;
 
     read_cv_b(ctrl);
+
     if (model_b)
-        model_b->generate(ctrl, buf, n, stride);
+    {
+        model_b->pitch(ctrl.freq);
+        //model_b->modify(...);
+        model_b->generate(buf, n, stride);
+    }
 }
 
 template<> void handler<interrupt::DMA2_CH1>()

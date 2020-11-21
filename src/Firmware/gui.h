@@ -10,7 +10,7 @@
 //#include "hihat.h"
 
 template<ch_t CH, typename DISPLAY>
-struct chan_t : border_t<DISPLAY>, imodel, itrigger
+struct chan_t : border_t<DISPLAY>, igenerator
 {
     typedef valuebox_t<DISPLAY, show_str> label;
     typedef valuebox_t<DISPLAY, show_note> notebox;
@@ -84,28 +84,9 @@ struct chan_t : border_t<DISPLAY>, imodel, itrigger
         }
     }
 
-    // imodel
+    // igenerator
 
-    virtual void generate(ctrl_t& ctrl, int32_t *buf, uint16_t n, uint8_t stride)
-    {
-        ctrl.freq = m_voct.freq(ctrl.freq);
-
-        switch (m_prog)
-        {
-            case pg_freqmod:    m_freqmod.generate(ctrl, buf, n, stride); break;
-/*
-            case pg_classic:    m_classic.generate(ctrl, buf, n, stride); break;
-            case pg_kick:       m_kick.generate(ctrl, buf, n, stride); break;
-            case pg_snare:      m_snare.generate(ctrl, buf, n, stride); break;
-            case pg_hihat:      m_hihat.generate(ctrl, buf, n, stride); break;
-*/
-            default: ;
-        }
-    }
-
-    // itrigger
- 
-    virtual void trigger(bool rise)
+    virtual void trigger(bool rise = true)
     {
         switch (m_prog)
         {
@@ -115,6 +96,43 @@ struct chan_t : border_t<DISPLAY>, imodel, itrigger
             case pg_kick:       m_kick.trigger(rise); break;
             case pg_snare:      m_snare.trigger(rise); break;
             case pg_hihat:      m_hihat.trigger(rise); break;
+*/
+            default: ;
+        }
+    }
+
+    virtual void pitch(float freq)
+    {
+        freq = m_voct.freq(freq);
+
+        switch (m_prog)
+        {
+            case pg_freqmod:    m_freqmod.pitch(freq); break;
+/*
+            case pg_classic:    m_classic.pitch(freq); break;
+            case pg_kick:       m_kick.pitch(freq); break;
+            case pg_snare:      m_snare.pitch(freq); break;
+            case pg_hihat:      m_hihat.pitch(freq); break;
+*/
+            default: ;
+        }
+    }
+
+    virtual void modify(uint8_t i, float x)
+    {
+        // FIXME: dispatch mods
+    }
+
+    virtual void generate(int32_t *buf, uint16_t len, uint8_t stride)
+    {
+        switch (m_prog)
+        {
+            case pg_freqmod:    m_freqmod.generate(buf, len, stride); break;
+/*
+            case pg_classic:    m_classic.generate(buf, len, stride); break;
+            case pg_kick:       m_kick.generate(buf, len, stride); break;
+            case pg_snare:      m_snare.generate(buf, len, stride); break;
+            case pg_hihat:      m_hihat.generate(buf, len, stride); break;
 */
             default: ;
         }

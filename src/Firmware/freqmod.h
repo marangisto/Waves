@@ -124,7 +124,7 @@ struct oplabels_t: border_t<DISPLAY>
 };
 
 template<ch_t CH, typename DISPLAY>
-struct freqmod_t: window_t<DISPLAY>, imodel, itrigger
+struct freqmod_t: window_t<DISPLAY>, igenerator
 {
     static constexpr uint8_t num_ops = 2;
     typedef valuebox_t<DISPLAY, show_str> label;
@@ -169,23 +169,29 @@ struct freqmod_t: window_t<DISPLAY>, imodel, itrigger
             return window_t<DISPLAY>::handle_message(m);
     }
 
-    // imodel
+    // igenerator
 
-    virtual void generate(ctrl_t& ctx, int32_t *buf, uint16_t n, uint8_t stride)
+    virtual void trigger(bool rise)
     {
-        m_op0.update(ctx.freq);
-        m_op1.update(ctx.freq);
-
-        for (uint16_t i = 0; i < n; ++i, buf += stride)
-            *buf = board::dacdma::swap(m_op0.sample(m_op1.sample()).q);
+        m_op0.trigger(rise);
+        m_op1.trigger(rise);
     }
 
-    // itrigger
-
-    virtual void trigger(bool gate)
+    virtual void pitch(float freq)
     {
-        m_op0.trigger(gate);
-        m_op1.trigger(gate);
+        m_op0.update(freq);
+        m_op1.update(freq);
+    }
+
+    virtual void modify(uint8_t i, float x)
+    {
+        // FIXME: bind some parameters
+    }
+
+    virtual void generate(int32_t *buf, uint16_t len, uint8_t stride)
+    {
+        for (uint16_t i = 0; i < len; ++i, buf += stride)
+            *buf = board::dacdma::swap(m_op0.sample(m_op1.sample()).q);
     }
 
     oplabels_t<DISPLAY>         m_labels;
