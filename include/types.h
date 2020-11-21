@@ -40,7 +40,7 @@ struct igenerator
     virtual void trigger(bool rise = true) = 0;
     virtual void pitch(float freq) = 0;
     virtual void modify(uint8_t i, float x) = 0;
-    virtual void generate(uint16_t *buf, uint16_t len) = 0;
+    virtual void generate(uint16_t *buf, uint16_t len, uint8_t stride) = 0;
 };
 
 template<ch_t CH>

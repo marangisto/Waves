@@ -33,6 +33,7 @@ template<> void handler<interrupt::DMA1_CH1>()
             ( buffer
             + (sts & dma_transfer_complete ? half_buffer_size : 0)
             , half_buffer_size
+            , 1
             );
 
     probe::clear();

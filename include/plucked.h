@@ -108,10 +108,10 @@ struct karplus_strong_t: igenerator
         }
     }
 
-    virtual void generate(uint16_t *buf, uint16_t len)
+    virtual void generate(uint16_t *buf, uint16_t len, uint8_t stride)
     {
-        for (uint16_t i = 0; i < len; ++i)
-            buf[i] = sample();
+        for (uint16_t i = 0; i < len; ++i, buf += stride)
+            *buf = sample();
     }
 
     void setup()
