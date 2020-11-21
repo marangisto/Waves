@@ -1,6 +1,7 @@
 #include <types.h>
 #include <fixed.h>
 #include <cstdlib>
+#include <algorithm>
 
 using namespace fixed;
 
@@ -84,6 +85,16 @@ struct karplus_strong_t: igenerator
         set_freq(freq, m_kno);
     }
 
+    virtual void modify(uint8_t i, float x)
+    {
+        x = std::min<float>(std::max<float>(x, .0), 1.);
+
+        switch (i)
+        {
+            case 0: m_mix = q31_t(x * x); break;
+        }
+    }
+
     virtual void generate(uint16_t *buf, uint16_t len)
     {
         for (uint16_t i = 0; i < len; ++i)
@@ -137,7 +148,6 @@ struct karplus_strong_t: igenerator
     {
         if (excite)
         {
-            q31_t mix(0.0);
             q31_t noise = q31_t(static_cast<int32_t>(rand()) << 1);
             q31_t pulse = q31_t(excite < (index >> 1) ? 0.99 : -0.99);
 
@@ -146,8 +156,8 @@ struct karplus_strong_t: igenerator
             // FIXME: add excitation amplitude for velocity
 
             return q31_t(0.5) * delay.write
-                ( (one - mix) * noise
-                + mix * pulse
+                ( (one - m_mix) * noise
+                + m_mix * pulse
                 );
         }
         else
@@ -170,6 +180,8 @@ struct karplus_strong_t: igenerator
     volatile unsigned   count;
     volatile unsigned   mask;
     uint16_t            last;
+    // modulation parameters
+    volatile q31_t      m_mix;
     // state marshalling
     uint16_t            m_kno;
     float               m_freq;
