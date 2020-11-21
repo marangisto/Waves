@@ -13,6 +13,12 @@ static constexpr q31_t half = q31_t(.5);
 
 extern const q31_t *epanechnikov(unsigned n);
 
+template<typename T>
+static inline T clamp(const T& x, const T& a, const T& b)
+{
+    return std::max(a, std::min(b, x));
+}
+
 template<unsigned N>
 struct delay_line_t
 {
@@ -87,11 +93,14 @@ struct karplus_strong_t: igenerator
 
     virtual void modify(uint8_t i, float x)
     {
-        x = std::min<float>(std::max<float>(x, .0), 1.);
-
         switch (i)
         {
-            case 0: m_mix = q31_t(x * x); break;
+        case 0:
+            m_mix = q31_t(clamp<float>(x * x, .0, 1.)); // FIXME: exponential?
+            break;
+        case 1:
+            set_freq(m_freq, clamp<uint16_t>(static_cast<uint16_t>(x * 30. + 1), 1, 31));
+            break;
         }
     }
 
