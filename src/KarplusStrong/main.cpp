@@ -77,6 +77,7 @@ int main()
             led::toggle();
             sys_tick::delay_ms(500);
             g_generator->pitch(0.125 * 440. * pow(2., static_cast<float>(i) / 12.));
+            g_generator->modify(2, 1);
             g_generator->modify(1, .5 * (sin(t) + 1.));
             g_generator->trigger();
         }

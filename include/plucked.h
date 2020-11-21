@@ -96,10 +96,14 @@ struct karplus_strong_t: igenerator
         switch (i)
         {
         case 0:
-            m_mix = q31_t(clamp<float>(x * x, .0, 1.)); // FIXME: exponential?
+            //m_mix = q31_t(clamp<float>(x * x, .0, 1.)); // FIXME: exponential?
+            m_mix = q31_t(clamp<float>(exp6(5. * (x - 1.)), .0, 1.));
             break;
         case 1:
-            set_freq(m_freq, clamp<uint16_t>(static_cast<uint16_t>(x * 30. + 1), 1, 31));
+            m_exvol = q31_t(clamp<float>(exp6(5. * (x - 1.)), .0, 1.));
+            break;
+        case 2:
+            set_freq(m_freq, clamp<uint16_t>(x * 30. + 1., 1, 31));
             break;
         }
     }
@@ -116,6 +120,8 @@ struct karplus_strong_t: igenerator
         delay.setup();
         set_freq(440.);
         count = 0;
+        m_mix = q31_t(.0);
+        m_exvol = q31_t(0.5);
     }
 
     void set_freq(float freq, unsigned kno = 1)
@@ -164,7 +170,7 @@ struct karplus_strong_t: igenerator
 
             // FIXME: add excitation amplitude for velocity
 
-            return q31_t(0.5) * delay.write
+            return m_exvol * delay.write
                 ( (one - m_mix) * noise
                 + m_mix * pulse
                 );
@@ -191,6 +197,7 @@ struct karplus_strong_t: igenerator
     uint16_t            last;
     // modulation parameters
     volatile q31_t      m_mix;
+    volatile q31_t      m_exvol;
     // state marshalling
     uint16_t            m_kno;
     float               m_freq;
