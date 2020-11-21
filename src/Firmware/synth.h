@@ -129,14 +129,6 @@ private:
     const volatile scale_t *m_scale;
 };
 
-static inline float exp6(float x)
-{
-    x = 1. + x / 64;
-    x *= x; x *= x; x *= x;
-    x *= x; x *= x; x *= x;
-    return x;
-}
-
 __attribute__((always_inline))
 static inline q31_t response(q31_t x)
 {
