@@ -67,6 +67,7 @@ struct show_prog
         switch (x)
         {
         case pg_freqmod:    return "FM";
+        case pg_karplus:    return "Plucked";
         case pg_classic:    return "Classic";
         case pg_kick:       return "Kick";
         case pg_snare:      return "Snare";

@@ -5,8 +5,6 @@
 
 using namespace fixed;
 
-static constexpr uint32_t sample_freq = 96000;
-
 static constexpr q31_t zero = q31_t(.0);
 static constexpr q31_t one = q31_t(1.);
 static constexpr q31_t half = q31_t(.5);
@@ -83,7 +81,8 @@ struct karplus_strong_t: igenerator
 
     virtual void trigger(bool rise = true)
     {
-        excite = index;
+        if (rise)
+            excite = index;
     }
 
     virtual void pitch(float freq)
@@ -96,7 +95,6 @@ struct karplus_strong_t: igenerator
         switch (i)
         {
         case 0:
-            //m_mix = q31_t(clamp<float>(x * x, .0, 1.)); // FIXME: exponential?
             m_mix = q31_t(clamp<float>(exp6(5. * (x - 1.)), .0, 1.));
             break;
         case 1:
@@ -108,10 +106,18 @@ struct karplus_strong_t: igenerator
         }
     }
 
+    /*
     virtual void generate(uint16_t *buf, uint16_t len, uint8_t stride)
     {
         for (uint16_t i = 0; i < len; ++i, buf += stride)
             *buf = sample();
+    }
+    */
+
+    virtual void generate(int32_t *buf, uint16_t len, uint8_t stride)
+    {
+        for (uint16_t i = 0; i < len; ++i, buf += stride)
+            *buf = swap16(sample());
     }
 
     void setup()
@@ -131,7 +137,7 @@ struct karplus_strong_t: igenerator
         m_freq = freq;
 
         unsigned undersample = 0;
-        float period = static_cast<float>(sample_freq) / freq;
+        float period = static_cast<float>(SAMPLE_FREQ) / freq;
 
         while (period > N - 31)     // kernel margin
         {
@@ -149,11 +155,22 @@ struct karplus_strong_t: igenerator
         }
     }
 
+/*
     __attribute__((always_inline))
     inline uint16_t sample()
     {
         if (!mask || !(count++ & mask))
             last = 2048 + (step().q >> 20);
+
+        return last;
+    }
+*/
+
+    __attribute__((always_inline))
+    inline int32_t sample()
+    {
+        if (!mask || !(count++ & mask))
+            last = step().q;
 
         return last;
     }
@@ -194,7 +211,7 @@ struct karplus_strong_t: igenerator
     volatile unsigned   excite;
     volatile unsigned   count;
     volatile unsigned   mask;
-    uint16_t            last;
+    int32_t             last;
     // modulation parameters
     volatile q31_t      m_mix;
     volatile q31_t      m_exvol;

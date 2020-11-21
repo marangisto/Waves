@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "types.h"
 #include "freqmod.h"
+#include "karplus.h"
 //#include "classic.h"
 //#include "kick.h"
 //#include "snare.h"
@@ -35,6 +36,7 @@ struct chan_t : border_t<DISPLAY>, igenerator
             , &m_prog, &m_scale, &m_transpose, &m_tuning
             )
         , m_freqmod(t)
+        , m_karplus(t)
         // other modules!
         , m_quiet(quiet)
     {
@@ -52,6 +54,7 @@ struct chan_t : border_t<DISPLAY>, igenerator
         switch (m_prog)
         {
             case pg_freqmod:    return &m_freqmod;
+            case pg_karplus:    return &m_karplus;
 /*
             case pg_classic:    return &m_classic;
             case pg_kick:       return &m_kick;
@@ -91,6 +94,7 @@ struct chan_t : border_t<DISPLAY>, igenerator
         switch (m_prog)
         {
             case pg_freqmod:    m_freqmod.trigger(rise); break;
+            case pg_karplus:    m_karplus.trigger(rise); break;
 /*
             case pg_classic:    m_classic.trigger(rise); break;
             case pg_kick:       m_kick.trigger(rise); break;
@@ -108,6 +112,7 @@ struct chan_t : border_t<DISPLAY>, igenerator
         switch (m_prog)
         {
             case pg_freqmod:    m_freqmod.pitch(freq); break;
+            case pg_karplus:    m_karplus.pitch(freq); break;
 /*
             case pg_classic:    m_classic.pitch(freq); break;
             case pg_kick:       m_kick.pitch(freq); break;
@@ -128,6 +133,7 @@ struct chan_t : border_t<DISPLAY>, igenerator
         switch (m_prog)
         {
             case pg_freqmod:    m_freqmod.generate(buf, len, stride); break;
+            case pg_karplus:    m_karplus.generate(buf, len, stride); break;
 /*
             case pg_classic:    m_classic.generate(buf, len, stride); break;
             case pg_kick:       m_kick.generate(buf, len, stride); break;
@@ -148,6 +154,7 @@ struct chan_t : border_t<DISPLAY>, igenerator
     vertical_t<DISPLAY>     m_column;
     voct_t                  m_voct;
     freqmod_t<CH, DISPLAY>  m_freqmod;
+    karplus_t<CH, DISPLAY>  m_karplus;
 /*
     classic_t<CH, DISPLAY>  m_classic;
     kick_t<CH, DISPLAY>     m_kick;

@@ -2,6 +2,7 @@
 
 enum prog_t
     { pg_freqmod
+    , pg_karplus
     , pg_classic
     , pg_kick
     , pg_snare
@@ -42,20 +43,9 @@ struct igenerator: itrigger
     virtual void generate(int32_t *buf, uint16_t len, uint8_t stride) = 0;
 };
 
-template<ch_t CH>
-struct calibration
+__attribute__((always_inline))
+static inline uint32_t swap16(uint32_t x)
 {
-    static inline float cv(uint16_t adc)
-    {
-        return (m_x0 - static_cast<float>(adc)) * m_k;
-    }
-
-    static void set(float x0, float k)
-    {
-        m_x0 = x0;
-        m_k = k;
-    }
-
-    static float m_x0, m_k;
-};
+    return x << 16 | x >> 16;
+}
 
