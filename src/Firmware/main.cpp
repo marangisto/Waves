@@ -24,7 +24,7 @@ static void fa(int32_t *buf, uint16_t n, uint8_t stride)
     if (model_a)
     {
         model_a->pitch(ctrl.freq);
-        //model_a->modify(...);
+        model_a->modify(3, 0.5); // ctrl.cv3);
         model_a->generate(buf, n, stride);
     }
 }
@@ -38,7 +38,7 @@ static void fb(int32_t *buf, uint16_t n, uint8_t stride)
     if (model_b)
     {
         model_b->pitch(ctrl.freq);
-        //model_b->modify(...);
+        model_b->modify(3, 0.5); // ctrl.cv3);
         model_b->generate(buf, n, stride);
     }
 }
