@@ -1,5 +1,6 @@
 #include <types.h>
 #include <fixed.h>
+#include <numeric.h>
 #include <cstdlib>
 #include <algorithm>
 

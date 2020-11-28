@@ -5,11 +5,6 @@
 
 using karplus_strong = karplus_strong_t<2048>;
 
-static inline float norm(float a, float b, float x)
-{
-    return (x - a) / (b - a);
-}
-
 /*
 template<typename DISPLAY>
 struct operator_t: border_t<DISPLAY>
@@ -181,9 +176,9 @@ struct karplus_t: window_t<DISPLAY>, karplus_strong
         constexpr float one_over_ln2 = 1. / log(2.);
         float d = 69. + 12. * log(freq * one_over_440) * one_over_ln2;
 
-        karplus_strong::modify(0, 1 * (1. - norm(21, 57, d)));
+        karplus_strong::modify(0, 1 * (1. - remap(21, 57, d)));
         karplus_strong::modify(1, 0);
-        karplus_strong::modify(2, 0.5 * (1. - norm(21, 57, d)));
+        karplus_strong::modify(2, 0.5 * (1. - remap(21, 57, d)));
         karplus_strong::pitch(freq);
     }
 
