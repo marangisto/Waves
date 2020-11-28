@@ -161,7 +161,7 @@ struct karplus_t: window_t<DISPLAY>, karplus_strong
         {
             uint8_t i = std::get<button_press>(m);
 
-            if ((CH == A && i == 0) || (CH == B && i == 2))
+            if ((CH == A && i == 1) || (CH == B && i == 3))
                 return action_t().emplace<pop_window>(0);
             else
                 return action_t().emplace<pop_window_message>(m);

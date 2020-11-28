@@ -196,10 +196,10 @@ struct gui_t: window_t<DISPLAY>
         case button_press:
             switch (std::get<button_press>(m))
             {
-            case 0:
+            case 1:
                 quiet = true;
                 return action_t().emplace<push_window>(channel_a.program());
-            case 2:
+            case 3:
                 quiet = true;
                 return action_t().emplace<push_window>(channel_b.program());
             default:

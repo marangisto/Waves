@@ -31,7 +31,7 @@ void run()
             {
                 switch (static_cast<char>(x))
                 {
-                case '0': gui.handle_message(m.emplace<button_press>(0)); break;
+                case '0': gui.handle_message(m.emplace<encoder_press>(0)); break;
                 case '1': gui.handle_message(m.emplace<button_press>(1)); break;
                 case '2': gui.handle_message(m.emplace<button_press>(2)); break;
                 case '3': gui.handle_message(m.emplace<button_press>(3)); break;

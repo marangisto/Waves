@@ -166,10 +166,10 @@ template<> void handler<interrupt::TIM7>()
     uint8_t bb = bdecb.decode(readb<4>());
 
     if (ba)
-        mq::put(m.emplace<button_press>(ba - 1));   // 0 or 1
+        mq::put(m.emplace<button_press>(ba));       // 1 or 2
 
     if (bb)
-        mq::put(m.emplace<button_press>(bb + 1));   // 2 or 3
+        mq::put(m.emplace<button_press>(bb + 2));   // 3 or 4
 
     int16_t c = static_cast<int16_t>(encoder::count()) >> 1;
 
