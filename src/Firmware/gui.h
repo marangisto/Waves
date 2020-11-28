@@ -27,8 +27,8 @@ struct chan_t : border_t<DISPLAY>, igenerator
         , m_cv1(t, 0)
         , m_cv2(t, 0)
         , m_cv3(t, 0)
-        , m_prog(t, pg_freqmod)
-        , m_scale(t, unscaled)
+        , m_prog(t, pg_karplus)
+        , m_scale(t, chromatic)
         , m_transpose(t, 0)
         , m_tuning(t, 0.0f)
         , m_column
