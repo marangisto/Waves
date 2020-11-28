@@ -37,29 +37,45 @@ void read_cv_b(ctrl_t& ctrl)
 
 // buttons decoder (corrsponding to mid-points on the adc readings)
 
+template<int A, int B>
 class btns_decoder_t
 {
 public:
     void setup()
     {
-        m_count = m_last = 0;
+        m_count = m_last = m_btn = 0;
     }
 
-    inline uint8_t decode(uint16_t x)  // call with ADC value
+    inline int8_t decode(uint16_t x)  // call with ADC value
     {
-        uint8_t y = x < 1175 ? 1 : (x < 3223 ? 2 : 0);
+        int8_t y = x < 1175 ? A : (x < 3223 ? B : 0);
 
-        m_count = y != 0 && y == m_last ? m_count + 1 : 0;
-        m_last = y;
-        return m_count == 10 ? y : 0;
+        if (y == m_last)
+        {
+            if (++m_count == 10)
+            {
+                if (y)
+                    m_btn = y;
+                return y ? y : -m_btn;
+            }
+        }
+        else
+        {
+            m_count = 0;
+            m_last = y;
+        }
+
+        return 0;
     }
 
 private:
-    uint8_t m_count;
-    uint8_t m_last;
+    uint32_t m_count;
+    int8_t   m_last;    // last adc reading
+    int8_t   m_btn;     // last button press
 };
 
-static btns_decoder_t bdeca, bdecb;
+static btns_decoder_t<1, 2> bdeca;
+static btns_decoder_t<3, 4> bdecb;
 
 void setup()
 {
@@ -162,14 +178,14 @@ template<> void handler<interrupt::TIM7>()
     if (encoder_btn::read())
         mq::put(m.emplace<encoder_press>(unit));
 
-    uint8_t ba = bdeca.decode(reada<4>());
-    uint8_t bb = bdecb.decode(readb<4>());
+    int8_t ba = bdeca.decode(reada<4>());
+    int8_t bb = bdecb.decode(readb<4>());
 
     if (ba)
-        mq::put(m.emplace<button_press>(ba));       // 1 or 2
+        mq::put(m.emplace<button_press>(ba));
 
     if (bb)
-        mq::put(m.emplace<button_press>(bb + 2));   // 3 or 4
+        mq::put(m.emplace<button_press>(bb));
 
     int16_t c = static_cast<int16_t>(encoder::count()) >> 1;
 
@@ -201,6 +217,14 @@ void register_triggers(itrigger *a, itrigger *b)
 {
     cb_trig_a = a;
     cb_trig_b = b;
+}
+
+void manual_trigger(ch_t ch, bool gate)
+{
+    if (ch == A && cb_trig_a)
+        cb_trig_a->trigger(gate);
+    else if (ch == B && cb_trig_b)
+        cb_trig_b->trigger(gate);
 }
 
 template<> void handler<interrupt::EXTI15_10>()

@@ -202,6 +202,18 @@ struct gui_t: window_t<DISPLAY>
             case 3:
                 quiet = true;
                 return action_t().emplace<push_window>(channel_b.program());
+            case 2:
+                manual_trigger(A, true);
+                break;
+            case -2:
+                manual_trigger(A, false);
+                break;
+            case 4:
+                manual_trigger(B, true);
+                break;
+            case -4:
+                manual_trigger(B, false);
+                break;
             default:
                 ; // fall through to this window handler
             }

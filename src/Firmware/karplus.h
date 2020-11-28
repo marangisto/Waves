@@ -159,12 +159,14 @@ struct karplus_t: window_t<DISPLAY>, karplus_strong
     {
         if (m.index() == button_press)
         {
-            uint8_t i = std::get<button_press>(m);
+            int8_t i = std::get<button_press>(m);
 
             if ((CH == A && i == 1) || (CH == B && i == 3))
                 return action_t().emplace<pop_window>(0);
-            else
+            else if (i > 0) // exit for any button press
                 return action_t().emplace<pop_window_message>(m);
+            else            // ignore button releases
+                return action_t().emplace<no_action>(unit);
         }
         else
             return window_t<DISPLAY>::handle_message(m);

@@ -101,5 +101,6 @@ void start_dacdma();
 
 } // namespace board
 
+void manual_trigger(ch_t ch, bool gate);
 void register_triggers(itrigger *a, itrigger *b);
 
