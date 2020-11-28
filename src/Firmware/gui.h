@@ -146,7 +146,7 @@ struct chan_t : border_t<DISPLAY>, igenerator
 
     notebox                 m_note;
     floatbox                m_freq;
-    intbox                  m_cv1, m_cv2, m_cv3;
+    floatbox                m_cv1, m_cv2, m_cv3;
     progbox                 m_prog;
     scalebox                m_scale;
     intbox                  m_transpose;

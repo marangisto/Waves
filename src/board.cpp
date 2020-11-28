@@ -1,6 +1,7 @@
 #include <board.h>
 #include <tuning.h>
 #include <vrefbuf.h>
+#include <numeric.h>
 
 namespace board
 {
@@ -13,20 +14,25 @@ uint16_t adc2_buf[adc_buf_size];
 static uint16_t tab_a[OCTAVES];
 static uint16_t tab_b[OCTAVES];
 
+static inline float remap4096(float x)
+{
+    return remap(4095, 0, x);
+}
+
 void read_cv_a(ctrl_t& ctrl)
 {
     ctrl.freq = adc2cv(tab_a, reada<0>());
-    ctrl.cv2 = reada<1>();
-    ctrl.cv2 = reada<2>();
-    ctrl.cv3 = reada<3>();
+    ctrl.cv2 = remap4096(reada<1>());
+    ctrl.cv2 = remap4096(reada<2>());
+    ctrl.cv3 = remap4096(reada<3>());
 }
 
 void read_cv_b(ctrl_t& ctrl)
 {
     ctrl.freq = adc2cv(tab_b, readb<0>());
-    ctrl.cv1 = readb<1>();
-    ctrl.cv2 = readb<2>();
-    ctrl.cv3 = readb<3>();
+    ctrl.cv1 = remap4096(readb<1>());
+    ctrl.cv2 = remap4096(readb<2>());
+    ctrl.cv3 = remap4096(readb<3>());
 }
 
 // buttons decoder (corrsponding to mid-points on the adc readings)
