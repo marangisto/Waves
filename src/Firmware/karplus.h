@@ -180,7 +180,7 @@ struct karplus_t: window_t<DISPLAY>, karplus_strong
 
         karplus_strong::modify(0, 1 * (1. - remap(21, 57, d)));
         karplus_strong::modify(1, 0);
-        karplus_strong::modify(2, 0.5 * (1. - remap(21, 57, d)));
+        karplus_strong::modify(2, 0.5 * (1. - remap(21, 81, d)));
         karplus_strong::pitch(freq);
     }
 
