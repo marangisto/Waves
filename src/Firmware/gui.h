@@ -125,7 +125,18 @@ struct chan_t : border_t<DISPLAY>, igenerator
 
     virtual void modify(uint8_t i, float x)
     {
-        // FIXME: dispatch mods
+        switch (m_prog)
+        {
+            case pg_freqmod:    m_freqmod.modify(i, x); break;
+            case pg_karplus:    m_karplus.modify(i, x); break;
+/*
+            case pg_classic:    m_classic.generate(buf, len, stride); break;
+            case pg_kick:       m_kick.generate(buf, len, stride); break;
+            case pg_snare:      m_snare.generate(buf, len, stride); break;
+            case pg_hihat:      m_hihat.generate(buf, len, stride); break;
+*/
+            default: ;
+        }
     }
 
     virtual void generate(int32_t *buf, uint16_t len, uint8_t stride)

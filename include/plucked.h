@@ -83,12 +83,8 @@ struct karplus_strong_t: igenerator
     virtual void trigger(bool rise = true)
     {
         if (rise)
-        {
             excite = index;
-            damp = half;
-        }
-        else
-            damp.q = m_decay.q;
+        gate = rise;
     }
 
     virtual void pitch(float freq)
@@ -110,7 +106,7 @@ struct karplus_strong_t: igenerator
             set_freq(m_freq, clamp<uint16_t>(x * 30. + 1., 1, 31));
             break;
         case 3:
-            m_decay = q31_t(x); // q31_t(clamp<float>((1. - x) * .5, .0, .5));
+            m_decay = q31_t(.25 + x * .25);
             break;
         }
     }
@@ -136,7 +132,8 @@ struct karplus_strong_t: igenerator
         set_freq(440.);
         count = 0;
         m_mix = q31_t(.0);
-        m_exvol = q31_t(0.5);
+        m_exvol = q31_t(.5);
+        m_sustain = q31_t(.5);
         m_decay = q31_t(.45);
     }
 
@@ -209,7 +206,7 @@ struct karplus_strong_t: igenerator
             for (unsigned k = 0; k < width; ++k)
                 s = s + kernel[k] * delay.read(index + k - mid);
 
-            return delay.write(half * s + damp * s);
+            return delay.write(s * half + s * (gate ? m_sustain : m_decay));
         }
     }
 
@@ -221,12 +218,13 @@ struct karplus_strong_t: igenerator
     volatile unsigned   excite;
     volatile unsigned   count;
     volatile unsigned   mask;
-    volatile q31_t      damp;
+    volatile bool       gate;
     int32_t             last;
     // modulation parameters
     volatile q31_t      m_mix;
     volatile q31_t      m_exvol;
-    volatile q31_t      m_decay;
+    volatile q31_t      m_sustain;      // feedback with gate open
+    volatile q31_t      m_decay;        // feedback with gate closed
     // state marshalling
     uint16_t            m_kno;
     float               m_freq;
