@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:Waves-cache
 EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
@@ -478,41 +477,41 @@ VREF
 $Comp
 L Device:Rotary_Encoder_Switch SW?
 U 1 1 5DD70181
-P 6300 8100
+P 5750 8450
 AR Path="/5DD41DD6/5DD70181" Ref="SW?"  Part="1" 
 AR Path="/5DD70181" Ref="SW2"  Part="1" 
-F 0 "SW2" H 6300 8467 50  0000 C CNN
-F 1 "Rotary_Encoder_Switch" H 6300 8376 50  0000 C CNN
-F 2 "Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm" H 6150 8260 50  0001 C CNN
-F 3 "~" H 6300 8360 50  0001 C CNN
-	1    6300 8100
+F 0 "SW2" H 5750 8817 50  0000 C CNN
+F 1 "Rotary_Encoder_Switch" H 5750 8726 50  0000 C CNN
+F 2 "Rotary_Encoder:RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm" H 5600 8610 50  0001 C CNN
+F 3 "~" H 5750 8710 50  0001 C CNN
+	1    5750 8450
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR?
 U 1 1 5DD7018D
-P 6300 8500
+P 5750 8850
 AR Path="/5DD41DD6/5DD7018D" Ref="#PWR?"  Part="1" 
 AR Path="/5DD7018D" Ref="#PWR024"  Part="1" 
-F 0 "#PWR024" H 6300 8250 50  0001 C CNN
-F 1 "GND" H 6305 8327 50  0000 C CNN
-F 2 "" H 6300 8500 50  0001 C CNN
-F 3 "" H 6300 8500 50  0001 C CNN
-	1    6300 8500
+F 0 "#PWR024" H 5750 8600 50  0001 C CNN
+F 1 "GND" H 5755 8677 50  0000 C CNN
+F 2 "" H 5750 8850 50  0001 C CNN
+F 3 "" H 5750 8850 50  0001 C CNN
+	1    5750 8850
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5900 8000 6000 8000
+	4800 8350 5250 8350
 Wire Wire Line
-	5900 8200 6000 8200
-Text GLabel 5900 8200 0    50   Input ~ 0
+	4800 8550 4950 8550
+Text GLabel 4800 8550 0    50   Input ~ 0
 ENC_CH1
-Text GLabel 5900 8000 0    50   Input ~ 0
+Text GLabel 4800 8350 0    50   Input ~ 0
 ENC_CH2
-Text GLabel 6700 8000 2    50   Input ~ 0
+Text GLabel 6400 8350 2    50   Input ~ 0
 ENC_SW
 Wire Wire Line
-	6600 8000 6700 8000
+	6050 8350 6200 8350
 $Comp
 L Local:IPS240x240 U?
 U 1 1 5DD7E5F7
@@ -686,20 +685,20 @@ MEM_MISO
 Text GLabel 8750 4800 2    50   Input ~ 0
 MEM_CS
 Wire Wire Line
-	6000 8100 5950 8100
+	5450 8450 5400 8450
 Wire Wire Line
-	5950 8100 5950 8400
+	5400 8450 5400 8750
 Wire Wire Line
-	5950 8400 6300 8400
+	5400 8750 5750 8750
 Wire Wire Line
-	6300 8400 6300 8500
+	5750 8750 5750 8850
 Wire Wire Line
-	6300 8400 6650 8400
+	5750 8750 6100 8750
 Wire Wire Line
-	6650 8400 6650 8200
+	6100 8750 6100 8550
 Wire Wire Line
-	6650 8200 6600 8200
-Connection ~ 6300 8400
+	6100 8550 6050 8550
+Connection ~ 5750 8750
 Text GLabel 8750 3200 2    50   Input ~ 0
 ENC_CH2
 Text GLabel 8750 3300 2    50   Input ~ 0
@@ -1877,4 +1876,77 @@ F 3 "" H 2200 8350 50  0001 C CNN
 	1    2200 8350
 	1    0    0    -1  
 $EndComp
+$Comp
+L Device:R R54
+U 1 1 5FD7B538
+P 6200 8000
+F 0 "R54" H 6270 8046 50  0000 L CNN
+F 1 "4k7" H 6270 7955 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 6130 8000 50  0001 C CNN
+F 3 "~" H 6200 8000 50  0001 C CNN
+	1    6200 8000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R53
+U 1 1 5FD7C2B0
+P 5250 8000
+F 0 "R53" H 5320 8046 50  0000 L CNN
+F 1 "4k7" H 5320 7955 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 5180 8000 50  0001 C CNN
+F 3 "~" H 5250 8000 50  0001 C CNN
+	1    5250 8000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R52
+U 1 1 5FD7CB02
+P 4950 8000
+F 0 "R52" H 5020 8046 50  0000 L CNN
+F 1 "4k7" H 5020 7955 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" V 4880 8000 50  0001 C CNN
+F 3 "~" H 4950 8000 50  0001 C CNN
+	1    4950 8000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4950 8150 4950 8550
+Connection ~ 4950 8550
+Wire Wire Line
+	4950 8550 5450 8550
+Wire Wire Line
+	5250 8150 5250 8350
+Connection ~ 5250 8350
+Wire Wire Line
+	5250 8350 5450 8350
+Wire Wire Line
+	6200 8150 6200 8350
+Connection ~ 6200 8350
+Wire Wire Line
+	6200 8350 6400 8350
+$Comp
+L power:+3.3V #PWR09
+U 1 1 5FDE0A63
+P 4950 7700
+F 0 "#PWR09" H 4950 7550 50  0001 C CNN
+F 1 "+3.3V" H 4965 7873 50  0000 C CNN
+F 2 "" H 4950 7700 50  0001 C CNN
+F 3 "" H 4950 7700 50  0001 C CNN
+	1    4950 7700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4950 7850 4950 7750
+Wire Wire Line
+	4950 7750 5250 7750
+Wire Wire Line
+	6200 7750 6200 7850
+Connection ~ 4950 7750
+Wire Wire Line
+	4950 7750 4950 7700
+Wire Wire Line
+	5250 7750 5250 7850
+Connection ~ 5250 7750
+Wire Wire Line
+	5250 7750 6200 7750
 $EndSCHEMATC
